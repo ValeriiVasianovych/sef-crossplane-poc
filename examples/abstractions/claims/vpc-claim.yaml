@@ -1,0 +1,27 @@
+apiVersion: crossplane.org/v1alpha1
+kind: XVPCC
+metadata:
+  name: vpc-crossplane
+  namespace: crossplane-system
+spec:
+  parameters:
+    region: "eu-central-1"
+    vpc-name: "vpc-crossplane"
+    vpc-cidrBlock: "10.0.0.0/16"
+
+    public-subnet-name: "public-subnet"
+    public-subnetA-cidrBlock: "10.0.10.0/24"
+    public-subnetA-availabilityZone: "eu-central-1a"
+    public-subnetB-cidrBlock: "10.0.20.0/24"
+    public-subnetB-availabilityZone: "eu-central-1b"
+
+    private-subnet-name: "private-subnet"
+    private-subnetA-cidrBlock: "10.0.11.0/24"
+    private-subnetA-availabilityZone: "eu-central-1a"
+
+    private-subnetB-cidrBlock: "10.0.21.0/24"
+    private-subnetB-availabilityZone: "eu-central-1b"
+
+    ownerName: "SaaS-Team"
+    projectId: "VPC Crossplane Project"
+    env: "Development"

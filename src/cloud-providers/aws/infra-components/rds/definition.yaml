@@ -1,0 +1,83 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xrdscs.saas.nokia.com
+  labels:
+    app.kubernetes.io/version: "v0.1.0"
+spec:
+  defaultCompositeDeletePolicy: Foreground
+  defaultCompositionUpdatePolicy: Manual
+  group: saas.nokia.com
+  names:
+    kind: XRDSC
+    plural: xrdscs
+  claimNames:
+    kind: XRDSClaim
+    plural: xrdsclaims
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                parameters:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    region:
+                      type: string
+                    size:
+                      type: string
+                    username:
+                      type: string
+                    engine:
+                      type: string
+                    storageCapacity:
+                      type: integer
+                    engineVersion:
+                      type: string
+                    skipFinalSnapshot:
+                      type: boolean
+                    publiclyAccessible:
+                      type: boolean
+                    autoGeneratePassword:
+                      type: boolean
+                    ownerName:
+                      type: string
+                    projectId:
+                      type: string
+                    env:
+                      type: string
+                    writeConnectionSecretsToNamespace:
+                      type: string
+                    securityGroupName:
+                      type: string
+                    vpcId:
+                      type: string
+                    vpcPrivateSubnets:
+                      type: array
+                      items:
+                        type: string
+              required:
+                - parameters
+            status:
+              type: object
+              properties:
+                address:
+                  type: string
+                port:
+                  type: integer
+                password:
+                  type: string
+                subnetGroupName:
+                  type: string
+                securityGroupId:
+                  type: string
+                identifier:
+                  type: string

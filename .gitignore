@@ -1,0 +1,41 @@
+# Ignore Vim swap files
+*.swp
+*.swo
+
+# Ignore compiled files
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Ignore log and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Ignore dependency directories
+node_modules/
+vendor/
+target/
+bin/
+obj/
+
+# Ignore environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Ignore IDE/editor files
+.vscode/
+.idea/
+*.iml
+
+# Ignore OS-generated files
+.DS_Store
+Thumbs.db
+

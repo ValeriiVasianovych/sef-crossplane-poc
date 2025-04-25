@@ -1,0 +1,222 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: rds-composition
+  labels:
+    crossplane.io/xrd: xrdscs.saas.nokia.com
+    nokia.com/saas-provider: aws
+    nokia.com/saas-version: "v0.1.0"
+spec:
+  writeConnectionSecretsToNamespace: crossplane-system
+  compositeTypeRef:
+    apiVersion: saas.nokia.com/v1alpha1
+    kind: XRDSC
+  patchSets:
+    - name: common-tags
+      patches:
+        - fromFieldPath: "spec.parameters.ownerName"
+          toFieldPath: "spec.forProvider.tags.ownerName"
+        - fromFieldPath: "spec.parameters.projectId"
+          toFieldPath: "spec.forProvider.tags.projectId"
+        - fromFieldPath: "spec.parameters.env"
+          toFieldPath: "spec.forProvider.tags.env"
+
+  resources:
+    - name: subnet-group
+      base:
+        apiVersion: rds.aws.upbound.io/v1beta1
+        kind: SubnetGroup
+        metadata:
+          labels:
+            type: subnetgroup
+          name: sef-mariadb-subnet-group
+        spec:
+          forProvider:
+            region: <PATCHED>
+            subnetIds: <PATCHED>
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.vpcPrivateSubnets"
+          toFieldPath: "spec.forProvider.subnetIds"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.region"
+          toFieldPath: "spec.forProvider.region"
+        - type: ToCompositeFieldPath
+          fromFieldPath: "metadata.name"
+          toFieldPath: "status.subnetGroupName"
+
+    - name: security-group
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: SecurityGroup
+        metadata:
+          labels:
+            type: security-group
+        spec:
+          forProvider:
+            region: <PATCHED>
+            vpcId: <PATCHED>
+            tags:
+              Name: <PATCHED>
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.region"
+          toFieldPath: "spec.forProvider.region"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.vpcId"
+          toFieldPath: "spec.forProvider.vpcId"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.securityGroupName"
+          toFieldPath: "spec.forProvider.tags.Name"
+        - type: ToCompositeFieldPath
+          fromFieldPath: "status.atProvider.id"
+          toFieldPath: "status.securityGroupId"
+
+    - name: security-group-ingress
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: SecurityGroupIngressRule
+        spec:
+          forProvider:
+            region: <PATCHED>
+            securityGroupId: <PATCHED>
+            fromPort: 3306
+            toPort: 3306
+            ipProtocol: "tcp"
+            cidrIpv4: "131.228.32.160/27"
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.region"
+          toFieldPath: "spec.forProvider.region"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "status.securityGroupId"
+          toFieldPath: "spec.forProvider.securityGroupId"
+          policy:
+            fromFieldPath: Required
+
+    - name: security-group-egress
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: SecurityGroupEgressRule
+        spec:
+          forProvider:
+            region: <PATCHED>
+            securityGroupId: <PATCHED>
+            fromPort: -1
+            toPort: -1
+            ipProtocol: "-1"
+            cidrIpv4: "0.0.0.0/0"
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.region"
+          toFieldPath: "spec.forProvider.region"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "status.securityGroupId"
+          toFieldPath: "spec.forProvider.securityGroupId"
+          policy:
+            fromFieldPath: Required
+
+    - name: rds-instance
+      base:
+        apiVersion: rds.aws.upbound.io/v1beta1
+        kind: Instance
+        metadata:
+          name: <PATCHED>
+        spec:
+          forProvider:
+            #name: <PATCHED>
+            #dbName: "database-crossplane"
+            region: <PATCHED>
+            instanceClass: <PATCHED>
+            username: <PATCHED>
+            engine: <PATCHED>
+            allocatedStorage: <PATCHED>
+            engineVersion: <PATCHED> 
+            skipFinalSnapshot: <PATCHED>
+            publiclyAccessible: <PATCHED>
+            autoGeneratePassword: <PATCHED>
+            vpcSecurityGroupIds: [PATCHED]
+            passwordSecretRef:
+              namespace: crossplane-system
+              key: password
+            writeConnectionSecretToRef:
+              namespace: crossplane-system
+            tags:
+              Name: "sf-dev-vv-mariadb-crossplane"
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: "metadata.uid"
+          toFieldPath: "spec.writeConnectionSecretToRef.name"
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-mariadb"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "metadata.uid"
+          toFieldPath: "spec.forProvider.passwordSecretRef.name"
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-input"
+        - type: PatchSet
+          patchSetName: common-tags
+        #- type: FromCompositeFieldPath
+        #  fromFieldPath: "spec.parameters.name"
+        #  toFieldPath: "status.identifier"
+        #  policy:
+        #    fromFieldPath: Required
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.name"
+          toFieldPath: "metadata.name"
+          #- type: FromCompositeFieldPath
+          #fromFieldPath: "spec.parameters.name"
+          #toFieldPath: "spec.forProvider.dbName"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.region"
+          toFieldPath: "spec.forProvider.region"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.size"
+          toFieldPath: "spec.forProvider.instanceClass"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.username"
+          toFieldPath: "spec.forProvider.username"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.engine"
+          toFieldPath: "spec.forProvider.engine"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.storageCapacity"
+          toFieldPath: "spec.forProvider.allocatedStorage"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.engineVersion"
+          toFieldPath: "spec.forProvider.engineVersion"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.skipFinalSnapshot"
+          toFieldPath: "spec.forProvider.skipFinalSnapshot"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.publiclyAccessible"
+          toFieldPath: "spec.forProvider.publiclyAccessible"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.autoGeneratePassword"
+          toFieldPath: "spec.forProvider.autoGeneratePassword"
+        - type: FromCompositeFieldPath
+          fromFieldPath: "status.subnetGroupName"
+          toFieldPath: "spec.forProvider.dbSubnetGroupName"
+          policy:
+            fromFieldPath: Required
+        - type: FromCompositeFieldPath
+          fromFieldPath: "status.securityGroupId" 
+          toFieldPath: "spec.forProvider.vpcSecurityGroupIds[0]"
+          policy:
+            fromFieldPath: Required 
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.writeConnectionSecretsToNamespace"
+          toFieldPath: "spec.writeConnectionSecretToRef.namespace"
+      connectionDetails:
+        - fromFieldPath: "status.atProvider.address"
+          name: host
+        - fromFieldPath: "status.atProvider.endpoint"
+          name: endpoint
+        - fromFieldPath: "spec.forProvider.username"
+          name: username
+        - fromConnectionSecretKey: "attribute.password"
+          name: password

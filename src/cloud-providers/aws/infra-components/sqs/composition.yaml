@@ -1,0 +1,79 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: sqs-composition
+  labels:
+    crossplane.io/xrd: xsqscs.saas.nokia.com
+    nokia.com/saas-provider: aws
+    nokia.com/saas-version: "v0.1.0"
+spec:
+  compositeTypeRef:
+    apiVersion: saas.nokia.com/v1alpha1
+    kind: XSQSC
+  patchSets:
+    - name: common-tags
+      patches:
+        - fromFieldPath: spec.parameters.ownerName
+          toFieldPath: spec.forProvider.tags.ownerName
+        - fromFieldPath: spec.parameters.projectId
+          toFieldPath: spec.forProvider.tags.projectId
+        - fromFieldPath: spec.parameters.env
+          toFieldPath: spec.forProvider.tags.env
+  resources:
+    - name: sqs-queue
+      base:
+        apiVersion: sqs.aws.upbound.io/v1beta1
+        kind: Queue
+        metadata:
+          name: <PATCHED>
+        spec:
+          providerConfigRef:
+            name: default
+            namespace: crossplane-system
+          forProvider:
+            name: <PATCHED>
+            region: <PATCHED>
+            sqsManagedSseEnabled: <PATCHED>
+          tags:
+            Name: <PATCHED>
+
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.queueName
+          toFieldPath: spec.forProvider.tags.Name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.queueName
+          toFieldPath: metadata.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.queueName
+          toFieldPath: spec.forProvider.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: spec.forProvider.region
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.fifoQueue
+          toFieldPath: spec.forProvider.fifoQueue
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.contentBasedDeduplication
+          toFieldPath: spec.forProvider.contentBasedDeduplication
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.delaySeconds
+          toFieldPath: spec.forProvider.delaySeconds
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.maximumMessageSize
+          toFieldPath: spec.forProvider.maxMessageSize
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.messageRetentionPeriod
+          toFieldPath: spec.forProvider.messageRetentionSeconds
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.receiveMessageWaitTimeSeconds
+          toFieldPath: spec.forProvider.receiveWaitTimeSeconds
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.visibilityTimeout
+          toFieldPath: spec.forProvider.visibilityTimeoutSeconds
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.sqsManagedSseEnabled
+          toFieldPath: spec.forProvider.sqsManagedSseEnabled
+        - type: PatchSet
+          patchSetName: common-tags
+

@@ -1,0 +1,829 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: vpc-composition
+spec:
+  writeConnectionSecretsToNamespace: crossplane-system
+  compositeTypeRef:
+    apiVersion: crossplane.org/v1alpha1
+    kind: XVPCC
+  patchSets:
+    - name: region
+      patches:
+        - fromFieldPath: spec.parameters.region
+          toFieldPath: spec.forProvider.region
+    - name: common-tags
+      patches:
+        - fromFieldPath: spec.parameters.ownerName
+          toFieldPath: spec.forProvider.tags.ownerName
+        - fromFieldPath: spec.parameters.projectId
+          toFieldPath: spec.forProvider.tags.projectId
+        - fromFieldPath: spec.parameters.env
+          toFieldPath: spec.forProvider.tags.env
+  resources:
+
+    # Virtual Private Network
+    - name: vpc
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: VPC
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: vpc
+        spec:
+          forProvider:
+            cidrBlock: <PATCHED>
+            region: <PATCHED>
+            enableDnsSupport: true
+            enableDnsHostNames: true
+            tags:
+              Name: ""
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-cidrBlock
+          toFieldPath: spec.forProvider.cidrBlock
+        - type: FromCompositeFieldPath      
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: spec.forProvider.tags.Name
+        - type: PatchSet
+          patchSetName: region
+        - type: PatchSet
+          patchSetName: common-tags
+
+    # Internet Gateway
+    - name: igw
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: InternetGateway
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: internet-gateway
+        spec:
+          forProvider:
+            region: <PATCHED>
+            vpcIdSelector:
+              matchControllerRef: true
+            tags:
+              Name: ""
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-igw"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: spec.forProvider.tags.Name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-igw"
+        - type: PatchSet
+          patchSetName: region
+        - type: PatchSet
+          patchSetName: common-tags
+
+    # Subnets
+    - name: public-subnet-a
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Subnet
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: subnet
+            visibility: public
+        spec:
+          forProvider:
+            region: <PATCHED>
+            cidrBlock: <PATCHED>
+            availabilityZone: <PATCHED>
+            vpcIdSelector:
+              matchControllerRef: true
+            mapPublicIpOnLaunch: true
+            tags:
+              Name: ""
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.public-subnet-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-a"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.public-subnet-name
+          toFieldPath: spec.forProvider.tags.Name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-a"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.public-subnetA-cidrBlock
+          toFieldPath: spec.forProvider.cidrBlock
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.public-subnetA-availabilityZone
+          toFieldPath: spec.forProvider.availabilityZone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.public-subnetA-availabilityZone
+          toFieldPath: metadata.labels.zone
+
+    - name: public-subnet-b
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Subnet
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: subnet
+            visibility: public
+        spec:
+          forProvider:
+            region: <PATCHED>
+            cidrBlock: <PATCHED>
+            availabilityZone: <PATCHED>
+            vpcIdSelector:
+              matchControllerRef: true
+            mapPublicIpOnLaunch: true
+            tags:
+              Name: ""
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.public-subnet-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-b"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.public-subnet-name
+          toFieldPath: spec.forProvider.tags.Name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-b"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.public-subnetB-cidrBlock
+          toFieldPath: spec.forProvider.cidrBlock
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.public-subnetB-availabilityZone
+          toFieldPath: spec.forProvider.availabilityZone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.public-subnetB-availabilityZone
+          toFieldPath: metadata.labels.zone
+
+    - name: private-subnet-a
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Subnet
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: subnet
+            visibility: private
+        spec:
+          forProvider:
+            region: <PATCHED>
+            cidrBlock: <PATCHED>
+            availabilityZone: <PATCHED>
+            vpcIdSelector:
+              matchControllerRef: true
+            mapPublicIpOnLaunch: false
+            tags:
+              Name: ""
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.private-subnet-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-a"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.private-subnet-name
+          toFieldPath: spec.forProvider.tags.Name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-a"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.private-subnetA-cidrBlock
+          toFieldPath: spec.forProvider.cidrBlock
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.private-subnetA-availabilityZone
+          toFieldPath: spec.forProvider.availabilityZone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.private-subnetA-availabilityZone
+          toFieldPath: metadata.labels.zone
+
+    - name: private-subnet-b
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Subnet
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: subnet
+            visibility: private
+        spec:
+          forProvider:
+            region: <PATCHED>
+            cidrBlock: <PATCHED>
+            availabilityZone: <PATCHED>
+            vpcIdSelector:
+              matchControllerRef: true
+            mapPublicIpOnLaunch: false
+            tags:
+              Name: ""
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.private-subnet-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-b"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.private-subnet-name
+          toFieldPath: spec.forProvider.tags.Name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-b"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.private-subnetB-cidrBlock
+          toFieldPath: spec.forProvider.cidrBlock
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.private-subnetB-availabilityZone
+          toFieldPath: spec.forProvider.availabilityZone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.private-subnetB-availabilityZone
+          toFieldPath: metadata.labels.zone
+
+    # Elastic IPs
+    - name: elastic-ip-a
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: EIP
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: elastic-ip
+            meta: eip-subnet-a
+        spec:
+          forProvider:
+            region: <PATCHED>
+            domain: vpc
+            tags:
+              Name: ""
+      patches:
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: PatchSet
+          patchSetName: region
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-eip-a"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: spec.forProvider.tags.Name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-eip-a"
+
+    - name: elastic-ip-b
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: EIP
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: elastic-ip
+            meta: eip-subnet-b
+        spec:
+          forProvider:
+            region: <PATCHED>
+            domain: vpc
+            tags:
+              Name: ""
+      patches:
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: PatchSet
+          patchSetName: region
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-eip-b"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: spec.forProvider.tags.Name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-eip-b"
+
+    # NAT Gateways
+    - name: nat-gateway-a
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: NATGateway
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: nat-gateway
+            meta: nat-gw-a
+        spec:
+          forProvider:
+            region: <PATCHED>
+            connectivityType: public
+            allocationIdSelector:
+              matchLabels:
+                meta: eip-subnet-a
+            vpcIdSelector:
+              matchControllerRef: true
+            subnetIdSelector:
+              matchLabels:
+                zone: ""
+                type: subnet
+                visibility: public
+            tags:
+              Name: ""
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-nat-a"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: spec.forProvider.tags.Name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-nat-a"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.public-subnetA-availabilityZone
+          toFieldPath: spec.forProvider.subnetIdSelector.matchLabels.zone
+
+    - name: nat-gateway-b
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: NATGateway
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: nat-gateway
+            meta: nat-gw-b
+        spec:
+          forProvider:
+            region: <PATCHED>
+            connectivityType: public
+            allocationIdSelector:
+              matchLabels:
+                meta: eip-subnet-b
+            vpcIdSelector:
+              matchControllerRef: true
+            subnetIdSelector:
+              matchLabels:
+                zone: ""
+                type: subnet
+                visibility: public
+            tags:
+              Name: ""
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-nat-b"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: spec.forProvider.tags.Name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-nat-b"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.public-subnetB-availabilityZone
+          toFieldPath: spec.forProvider.subnetIdSelector.matchLabels.zone
+
+    # Route Tables
+    - name: public-route-table
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTable
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: route-table
+            meta: public-rt
+        spec:
+          forProvider:
+            region: <PATCHED>
+            vpcIdSelector:
+              matchControllerRef: true
+            tags:
+              Name: ""
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-public-route-table"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: spec.forProvider.tags.Name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-public-route-table"
+
+    - name: private-route-table-a
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTable
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: route-table
+            meta: private-rt-a
+        spec:
+          forProvider:
+            region: <PATCHED>
+            vpcIdSelector:
+              matchControllerRef: true
+            tags:
+              Name: ""
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-private-route-table-a"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: spec.forProvider.tags.Name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-private-route-table-a"
+
+    - name: private-route-table-b
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTable
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: route-table
+            meta: private-rt-b
+        spec:
+          forProvider:
+            region: <PATCHED>
+            vpcIdSelector:
+              matchControllerRef: true
+            tags:
+              Name: ""
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-private-route-table-b"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: spec.forProvider.tags.Name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-private-route-table-b"
+
+    # Routes
+    - name: public-route
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Route
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: public-route
+        spec:
+          forProvider:
+            region: <PATCHED>
+            routeTableIdSelector:
+              matchLabels:
+                meta: public-rt
+            destinationCidrBlock: 0.0.0.0/0
+            gatewayIdSelector:
+              matchControllerRef: true
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-public-route"
+
+    - name: private-route-a
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Route
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: private-route-a
+        spec:
+          forProvider:
+            region: <PATCHED>
+            routeTableIdSelector:
+              matchLabels:
+                meta: private-rt-a
+            destinationCidrBlock: 0.0.0.0/0
+            natGatewayIdSelector:
+              matchLabels:
+                meta: nat-gw-a
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-private-route-a"
+
+    - name: private-route-b
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Route
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: private-route-b
+        spec:
+          forProvider:
+            region: <PATCHED>
+            routeTableIdSelector:
+              matchLabels:
+                meta: private-rt-b
+            destinationCidrBlock: 0.0.0.0/0
+            natGatewayIdSelector:
+              matchLabels:
+                meta: nat-gw-b
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-private-route-b"
+
+    # Route Table Associations
+    - name: public-rt-association-a
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTableAssociation
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: route-table-association
+            meta: rt-association-a
+        spec:
+          forProvider:
+            region: <PATCHED>
+            routeTableIdSelector:
+              matchLabels:
+                meta: public-rt
+            subnetIdSelector:
+              matchLabels:
+                type: subnet
+                visibility: public
+                zone: ""
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - fromFieldPath: spec.parameters.public-subnetA-availabilityZone
+          toFieldPath: spec.forProvider.subnetIdSelector.matchLabels.zone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-public-rt-association-a"
+
+    - name: public-rt-association-b
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTableAssociation
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: public-route-table-association
+        spec:
+          forProvider:
+            region: <PATCHED>
+            routeTableIdSelector:
+              matchLabels:
+                meta: public-rt
+            subnetIdSelector:
+              matchLabels:
+                type: subnet
+                visibility: public
+                zone: ""
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - fromFieldPath: spec.parameters.public-subnetB-availabilityZone
+          toFieldPath: spec.forProvider.subnetIdSelector.matchLabels.zone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-public-rt-association-b"
+
+    - name: private-rt-association-a
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTableAssociation
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: private-route-table-association
+        spec:
+          forProvider:
+            region: <PATCHED>
+            routeTableIdSelector:
+              matchLabels:
+                meta: private-rt-a
+            subnetIdSelector:
+              matchLabels:
+                type: subnet
+                visibility: private
+                zone: ""
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - fromFieldPath: spec.parameters.private-subnetA-availabilityZone
+          toFieldPath: spec.forProvider.subnetIdSelector.matchLabels.zone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-private-rt-association-a"
+
+    - name: private-rt-association-b
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTableAssociation
+        metadata:
+          name: <PATCHED>
+          labels:
+            nokia.com/saas-provider: aws
+            type: private-route-table-association
+        spec:
+          forProvider:
+            region: <PATCHED>
+            routeTableIdSelector:
+              matchLabels:
+                meta: private-rt-b
+            subnetIdSelector:
+              matchLabels:
+                type: subnet
+                visibility: private
+                zone: ""
+      patches:
+        - type: PatchSet
+          patchSetName: region
+        - fromFieldPath: spec.parameters.private-subnetB-availabilityZone
+          toFieldPath: spec.forProvider.subnetIdSelector.matchLabels.zone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpc-name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "%s-private-rt-association-b"

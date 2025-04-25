@@ -1,0 +1,64 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xvpccs.crossplane.org
+  labels:
+    app.kubernetes.io/version: "v0.1.0"
+spec:
+  group: crossplane.org
+  names:
+    kind: XVPCC
+    plural: xvpccs
+  claimNames:
+    kind: XVPC
+    plural: xvpcs
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              parameters:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+                properties:
+                  region:
+                    type: string
+                  vpc-name:
+                    type: string
+                  vpc-cidrBlock:
+                    type: string
+                  public-subnet-name:
+                    type: string
+                  public-subnetA-cidrBlock:
+                    type: string
+                  public-subnetA-availabilityZone:
+                    type: string
+                  public-subnetB-cidrBlock:
+                    type: string
+                  public-subnetB-availabilityZone:
+                    type: string
+                  private-subnet-name:
+                    type: string
+                  private-subnetA-cidrBlock:
+                    type: string
+                  private-subnetA-availabilityZone:
+                    type: string
+                  private-subnetB-cidrBlock:
+                    type: string
+                  private-subnetB-availabilityZone:
+                    type: string
+                  ownerName:
+                    type: string
+                  projectId:
+                    type: string
+                  env:
+                    type: string
+            required:
+            - parameters
+

@@ -1,0 +1,56 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xsqs.saas.nokia.com
+spec:
+  group: saas.nokia.com
+  names:
+    kind: XSQS
+    plural: xsqs
+  claimNames:
+    kind: Queue
+    plural: queues
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                parameters:
+                  type: object
+                  properties:
+                    queueName:
+                      type: string
+                    region:
+                      type: string
+                      default: "eu-central-1"
+                    fifoQueue: 
+                      type: boolean
+                    contentBasedDeduplication:
+                      type: boolean
+                    delaySeconds:
+                      type: integer
+                    maximumMessageSize:
+                      type: integer
+                    messageRetentionPeriod:
+                      type: integer
+                    receiveMessageWaitTimeSeconds:
+                      type: integer
+                    visibilityTimeout:
+                      type: integer
+                    sqsManagedSseEnabled:
+                      type: boolean 
+                    ownerName:
+                      type: string
+                    projectId:
+                      type: string
+                    env:
+                      type: string
+              required:
+                - parameters
+

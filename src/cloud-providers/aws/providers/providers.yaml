@@ -1,0 +1,89 @@
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-s3
+  namespace: crossplane-system
+spec:
+  package: xpkg.upbound.io/upbound/provider-aws-s3:v1.17.0
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-sqs
+  namespace: crossplane-system
+spec:
+  package: xpkg.upbound.io/upbound/provider-aws-sqs:v1
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-kubernetes
+  namespace: crossplane-system
+spec:
+  package: xpkg.upbound.io/upbound/provider-kubernetes:v0.16.0
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-kms
+  namespace: crossplane-system
+spec:
+  package: xpkg.upbound.io/upbound/provider-aws-kms:v1
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-rds
+  namespace: crossplane-system
+spec:
+  package: xpkg.upbound.io/upbound/provider-aws-rds:v1
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-vpc
+  namespace: crossplane-system
+spec:
+  package: xpkg.upbound.io/upbound/provider-aws-vpc:v1
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-ec2
+  namespace: crossplane-system
+spec:
+  package: xpkg.upbound.io/upbound/provider-aws-ec2:v1
+  
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws
+  namespace: crossplane-system
+spec:
+  package: xpkg.upbound.io/crossplane-contrib/provider-aws:v0.51.4
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-eks
+  namespace: crossplane-system
+spec:
+  package: xpkg.upbound.io/upbound/provider-aws-eks:v1
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-iam
+  namespace: crossplane-system
+spec:
+  package: xpkg.upbound.io/upbound/provider-aws-iam:v1

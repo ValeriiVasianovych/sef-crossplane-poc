@@ -1,0 +1,87 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xvpcs.saas.nokia.com
+  labels:
+    app.kubernetes.io/version: "v0.1.0"
+spec:
+  defaultCompositeDeletePolicy: Foreground
+  defaultCompositionUpdatePolicy: Manual
+  group: saas.nokia.com
+  names:
+    kind: XVPCC
+    plural: xvpccs
+  claimNames:
+    kind: XVPCClaim
+    plural: xvpcclaims
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                parameters:
+                  type: object
+                  description: "Configuration parameters for the VPC infrastructure"
+                  x-kubernetes-preserve-unknown-fields: true
+                  properties:
+                    region:
+                      type: string
+                      description: "AWS region where the VPC will be created"
+                    vpcName:
+                      type: string
+                      description: "Name of the VPC"
+                    vpcCidrBlock:
+                      type: string
+                      description: "CIDR block for the VPC"
+                    publicSubnetName:
+                      type: string
+                      description: "Base name for public subnets"
+                    publicSubnetACidrBlock:
+                      type: string
+                      description: "CIDR block for public subnet in AZ A"
+                    publicSubnetAAvailabilityZone:
+                      type: string
+                      description: "Availability zone for first public subnet"
+                    publicSubnetBCidrBlock:
+                      type: string
+                      description: "CIDR block for public subnet in AZ B"
+                    publicSubnetBAvailabilityZone:
+                      type: string
+                      description: "Availability zone for second public subnet"
+                    privateSubnetName:
+                      type: string
+                      description: "Base name for private subnets"
+                    privateSubnetACidrBlock:
+                      type: string
+                      description: "CIDR block for private subnet in AZ A"
+                    privateSubnetAAvailabilityZone:
+                      type: string
+                      description: "Availability zone for first private subnet"
+                    privateSubnetBCidrBlock:
+                      type: string
+                      description: "CIDR block for private subnet in AZ B"
+                    privateSubnetBAvailabilityZone:
+                      type: string
+                      description: "Availability zone for second private subnet"
+                    ownerName:
+                      type: string
+                      description: "Name of the owner/team responsible for the VPC"
+                    projectId:
+                      type: string
+                      description: "Project identifier"
+                    env:
+                      type: string
+                      description: "Environment name (e.g., Development, Production)"
+                  required:
+                    - region
+                    - vpcName
+                    - vpcCidrBlock
+              required:
+                - parameters
+

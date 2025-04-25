@@ -1,0 +1,1838 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: eks-composition
+  labels:
+    crossplane.io/xrd: xekscs.saas.nokia.com
+    nokia.com/saas-provider: aws
+    nokia.com/saas-version: "v0.1.0"
+spec:
+  compositeTypeRef:
+    apiVersion: saas.nokia.com/v1alpha1
+    kind: XEKSC
+  mode: Pipeline
+  pipeline:
+    - step: patch-and-transform
+      functionRef:
+        name: function-patch-and-transform
+      input:
+        apiVersion: pt.fn.crossplane.io/v1beta1
+        kind: Resources
+        resources:
+          - name: eksc-role
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: Role
+              spec:
+                forProvider:
+                  assumeRolePolicy: |
+                    {
+                      "Version": "2008-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Principal": {
+                            "Service": "eks.amazonaws.com"
+                          },
+                          "Action": "sts:AssumeRole"
+                        }
+                      ]
+                    }
+                  maxSessionDuration: 36000
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: CombineFromComposite
+                combine:
+                  strategy: string
+                  string:
+                    fmt: "arn:aws:iam::%s:%s"
+                  variables:
+                    - fromFieldPath: spec.target.accountId
+                    - fromFieldPath: spec.target.permissionsBoundaryPolicy
+                toFieldPath: spec.forProvider.permissionsBoundary
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-cluster"
+                toFieldPath: spec.forProvider.tags.Name
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-cluster"
+                toFieldPath: metadata.annotations["crossplane.io/external-name"]
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.id
+                toFieldPath: status.ekscRoleName
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.arn
+                toFieldPath: status.ekscRoleArn
+              - type: ToCompositeFieldPath
+                fromFieldPath: metadata.uid
+                toFieldPath: status.clusterRoleUid
+
+          - name: eksc-rolepolicyattachment-cluster
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: RolePolicyAttachment
+              spec:
+                forProvider:
+                  policyArn: "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.ekscRoleName
+                toFieldPath: spec.forProvider.role
+              - type: ToCompositeFieldPath
+                fromFieldPath: metadata.uid
+                toFieldPath: status.clusterPolicyUid
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterRoleUid
+                toFieldPath: metadata.labels.dependsOnUid
+                policy:
+                  fromFieldPath: Required
+
+          - name: eksc-rolepolicyattachment-vpc
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: RolePolicyAttachment
+              spec:
+                forProvider:
+                  policyArn: "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.ekscRoleName
+                toFieldPath: spec.forProvider.role
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterPolicyUid
+                toFieldPath: metadata.labels.dependsOnUid
+                policy:
+                  fromFieldPath: Required
+              - type: ToCompositeFieldPath
+                fromFieldPath: metadata.uid
+                toFieldPath: status.rcPolicyUid
+
+          - name: eksc-object-secret-clusterconnection
+            base:
+              apiVersion: kubernetes.crossplane.io/v1alpha1
+              kind: Object
+              spec:
+                forProvider:
+                  manifest:
+                    apiVersion: v1
+                    kind: Secret
+                    type: "connection.crossplane.io/v1alpha1"
+                    metadata:
+                      namespace: "crossplane-system"
+                providerConfigRef:
+                  name: local
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.clusterName
+                toFieldPath: spec.forProvider.manifest.metadata.generateName
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.manifest.metadata.name
+                toFieldPath: status.clusterConnectionSecretName
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.manifest.metadata.namespace
+                toFieldPath: status.clusterConnectionSecretNamespace
+              - type: ToCompositeFieldPath
+                fromFieldPath: metadata.uid
+                toFieldPath: status.clusterSecretUid
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.rcPolicyUid
+                toFieldPath: metadata.labels.dependsOnUid
+                policy:
+                  fromFieldPath: Required
+            readinessChecks:
+              - type: None
+
+          - name: eksc-key-clusterencryption
+            base:
+              apiVersion: kms.aws.upbound.io/v1beta1
+              kind: Key
+              metadata:
+                name: <PATCHED>
+              spec:
+                forProvider:
+                  deletionWindowInDays: 7
+                  description: <PATCHED>
+                  region: <PATCHED>
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.labels["crossplane.io/composite"]
+                toFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-eks-encryption-key"
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.arn
+                toFieldPath: status.clusterEncryptionKeyArn
+
+          - name: eksc-cluster
+            base:
+              apiVersion: eks.aws.upbound.io/v1beta2
+              kind: Cluster
+              spec:
+                forProvider:
+                  bootstrapSelfManagedAddons: false
+                  enabledClusterLogTypes: <PATCHED>
+                  encryptionConfig:
+                    provider:
+                      keyArn: <PATCHED>
+                    resources:
+                      - secrets
+                  version: <PATCHED>
+                  region: <PATCHED>
+                  roleArn: <PATCHED>
+                  vpcConfig:
+                    endpointPrivateAccess: true
+                    securityGroupIds: [PATCHED]
+                    subnetIds: [PATCHED]
+                    publicAccessCidrs: [PATCHED]
+            patches:
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.rcPolicyUid
+                toFieldPath: metadata.labels.dependsOnUid
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.tags
+                toFieldPath: spec.forProvider.tags
+                policy:
+                  toFieldPath: MergeObjects
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterEncryptionKeyArn
+                toFieldPath: spec.forProvider.encryptionConfig.provider.keyArn
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.enabledClusterLogTypes
+                toFieldPath: spec.forProvider.enabledClusterLogTypes
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.clusterName
+                toFieldPath: metadata.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.clusterName
+                toFieldPath: spec.forProvider.tags.Name
+                policy:
+                  toFieldPath: MergeObjects
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: spec.parameters.k8s-version
+                toFieldPath: spec.forProvider.version
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.ekscRoleArn
+                toFieldPath: spec.forProvider.roleArn
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.extraSecurityGroupIds
+                toFieldPath: spec.forProvider.vpcConfig.securityGroupIds
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.vpcSubnetZone1Id
+                toFieldPath: spec.forProvider.vpcConfig.subnetIds[0]
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.vpcSubnetZone2Id
+                toFieldPath: spec.forProvider.vpcConfig.subnetIds[1]
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: spec.parameters.vpcNatGwRootZone1PublicIp
+                toFieldPath: spec.forProvider.vpcConfig.publicAccessCidrs[0]
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s/32"
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: spec.parameters.vpcNatGwRootZone2PublicIp
+                toFieldPath: spec.forProvider.vpcConfig.publicAccessCidrs[1]
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s/32"
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: spec.parameters.vpcNatGwTargetZone1PublicIp
+                toFieldPath: spec.forProvider.vpcConfig.publicAccessCidrs[2]
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s/32"
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: spec.parameters.vpcNatGwTargetZone2PublicIp
+                toFieldPath: spec.forProvider.vpcConfig.publicAccessCidrs[3]
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s/32"
+              - type: FromCompositeFieldPath
+                policy:
+                  toFieldPath: ForceMergeObjectsAppendArrays
+                fromFieldPath: spec.parameters.clusterAllowedCidrs
+                toFieldPath: spec.forProvider.vpcConfig.publicAccessCidrs
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.id
+                toFieldPath: status.clusterName
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.identity[0].oidc[0].issuer
+                toFieldPath: status.clusterOidcIssuerUrl
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.identity[0].oidc[0].issuer
+                transforms:
+                  - type: string
+                    string:
+                      type: TrimPrefix
+                      trim: 'https://'
+                toFieldPath: status.clusterOidcProvider
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.vpcConfig.clusterSecurityGroupId
+                toFieldPath: status.clusterSecurityGroupId
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.certificateAuthority[0].data
+                toFieldPath: status.clusterCaCert
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.endpoint
+                toFieldPath: status.clusterEndpointUrl
+              - type: ToCompositeFieldPath
+                fromFieldPath: metadata.uid
+                toFieldPath: status.clusterUid
+
+          - name: eksc-clusterauth
+            base:
+              apiVersion: eks.aws.upbound.io/v1beta1
+              kind: ClusterAuth
+              spec:
+                forProvider:
+                  region: <PATCHED>
+                  clusterName: <PATCHED>
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterName
+                toFieldPath: spec.forProvider.clusterName
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterConnectionSecretName
+                toFieldPath: spec.writeConnectionSecretToRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterConnectionSecretNamespace
+                toFieldPath: spec.writeConnectionSecretToRef.namespace
+
+          - name: eksc-addon-kube-proxy
+            base:
+              apiVersion: eks.aws.upbound.io/v1beta1
+              kind: Addon
+              spec:
+                forProvider:
+                  addonName: kube-proxy
+                  configurationValues: '{"resources": {"requests": {"memory": "32Mi"},"limits": {"cpu": "200m","memory": "64Mi"}}}'
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+                policy:
+                  fromFieldPath: Required
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterName
+                toFieldPath: spec.forProvider.clusterName
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.addonVersionKubeProxy
+                toFieldPath: spec.forProvider.addonVersion
+
+          - name: eksc-addon-eks-pod-identity-agent
+            base:
+              apiVersion: eks.aws.upbound.io/v1beta1
+              kind: Addon
+              spec:
+                forProvider:
+                  addonName: eks-pod-identity-agent
+                  addonVersion: v1.3.5-eksbuild.2
+                  configurationValues: '{"resources": {"requests": {"cpu": "10m","memory": "32Mi"},"limits": {"cpu": "100m","memory": "64Mi"}}}'
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+                policy:
+                  fromFieldPath: Required
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterName
+                toFieldPath: spec.forProvider.clusterName
+
+          - name: eksc-role-vpccni
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: Role
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: CombineFromComposite
+                combine:
+                  strategy: string
+                  string:
+                    fmt: "arn:aws:iam::%s:%s"
+                  variables:
+                    - fromFieldPath: spec.target.accountId
+                    - fromFieldPath: spec.target.permissionsBoundaryPolicy
+                toFieldPath: spec.forProvider.permissionsBoundary
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-vpccni"
+                toFieldPath: spec.forProvider.tags.Name
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-vpccni"
+                toFieldPath: metadata.annotations["crossplane.io/external-name"]
+              - type: CombineFromComposite
+                toFieldPath: spec.forProvider.assumeRolePolicy
+                combine:
+                  strategy: string
+                  string:
+                    fmt: |
+                      {
+                        "Version": "2008-10-17",
+                        "Statement": [
+                          {
+                            "Effect": "Allow",
+                            "Principal": {
+                              "Federated": "arn:aws:iam::%s:oidc-provider/%s"
+                            },
+                            "Action": "sts:AssumeRoleWithWebIdentity",
+                            "Condition": {
+                              "StringEquals": {
+                                "%s:aud": "sts.amazonaws.com",
+                                "%s:sub": "system:serviceaccount:kube-system:aws-node"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                  variables:
+                    - fromFieldPath: spec.target.accountId
+                    - fromFieldPath: status.clusterOidcProvider
+                    - fromFieldPath: status.clusterOidcProvider
+                    - fromFieldPath: status.clusterOidcProvider
+                policy:
+                  fromFieldPath: Required
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.id
+                toFieldPath: status.vpccniRoleName
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.arn
+                toFieldPath: status.vpccniRoleArn
+
+          - name: eksc-rolepolicyattachment-vpccni-to-vpccni-role
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: RolePolicyAttachment
+              spec:
+                forProvider:
+                  policyArn: "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.vpccniRoleName
+                toFieldPath: spec.forProvider.role
+              - type: ToCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.atProvider.policyArn
+                toFieldPath: status.vpccniRolePolicyArnAttached
+
+          - name: eksc-addon-vpc-cni
+            base:
+              apiVersion: eks.aws.upbound.io/v1beta1
+              kind: Addon
+              spec:
+                forProvider:
+                  addonName: vpc-cni
+                  addonVersion: v1.19.3-eksbuild.1
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.vpccniRolePolicyArnAttached
+                toFieldPath: metadata.annotations.vpccniRolePolicyArnAttached
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterName
+                toFieldPath: spec.forProvider.clusterName
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.vpcEnablePrefixDelegation
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: '{"env": {"ENABLE_PREFIX_DELEGATION": "%s"}}'
+                toFieldPath: spec.forProvider.configurationValues
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.vpccniRoleArn
+                toFieldPath: spec.forProvider.serviceAccountRoleArn
+
+          - name: eksc-rolepolicyattachment-vpccni-to-eks-ng-role
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: RolePolicyAttachment
+              spec:
+                forProvider:
+                  policyArn: "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterNodesRoleName
+                toFieldPath: spec.forProvider.role
+
+          - name: eksc-role-ebs
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: Role
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: CombineFromComposite
+                combine:
+                  strategy: string
+                  string:
+                    fmt: "arn:aws:iam::%s:%s"
+                  variables:
+                    - fromFieldPath: spec.target.accountId
+                    - fromFieldPath: spec.target.permissionsBoundaryPolicy
+                toFieldPath: spec.forProvider.permissionsBoundary
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-ebs"
+                toFieldPath: spec.forProvider.tags.Name
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-ebs"
+                toFieldPath: metadata.annotations["crossplane.io/external-name"]
+              - type: CombineFromComposite
+                toFieldPath: spec.forProvider.assumeRolePolicy
+                combine:
+                  strategy: string
+                  string:
+                    fmt: |
+                      {
+                        "Version": "2008-10-17",
+                        "Statement": [
+                          {
+                            "Effect": "Allow",
+                            "Principal": {
+                              "Federated": "arn:aws:iam::%s:oidc-provider/%s"
+                            },
+                            "Action": "sts:AssumeRoleWithWebIdentity",
+                            "Condition": {
+                              "StringEquals": {
+                                "%s:aud": "sts.amazonaws.com",
+                                "%s:sub": "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                  variables:
+                    - fromFieldPath: spec.target.accountId
+                    - fromFieldPath: status.clusterOidcProvider
+                    - fromFieldPath: status.clusterOidcProvider
+                    - fromFieldPath: status.clusterOidcProvider
+                policy:
+                  fromFieldPath: Required
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.id
+                toFieldPath: status.ebsRoleName
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.arn
+                toFieldPath: status.ebsRoleArn
+
+          - name: eksc-rolepolicyattachment-ebs
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: RolePolicyAttachment
+              spec:
+                forProvider:
+                  policyArn: "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.ebsRoleName
+                toFieldPath: spec.forProvider.role
+              - type: ToCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.atProvider.policyArn
+                toFieldPath: status.ebsRolePolicyArnAttached
+
+          - name: eksc-addon-aws-ebs-csi-driver
+            base:
+              apiVersion: eks.aws.upbound.io/v1beta1
+              kind: Addon
+              spec:
+                forProvider:
+                  addonName: aws-ebs-csi-driver
+                  addonVersion: v1.40.1-eksbuild.1
+                  configurationValues: '{"controller": {"nodeSelector": {"common":"true"}, "resources": {"limits": {"cpu": "100m"}}},"node": {"resources": {"limits": {"cpu": "100m"}}}}'
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.ebsRolePolicyArnAttached
+                toFieldPath: metadata.annotations.ebsRolePolicyArnAttached
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterName
+                toFieldPath: spec.forProvider.clusterName
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.ebsRoleArn
+                toFieldPath: spec.forProvider.serviceAccountRoleArn
+
+          - name: eksc-object-storageclass-gp2-observe
+            base:
+              apiVersion: kubernetes.crossplane.io/v1alpha1
+              kind: Object
+              spec:
+                deletionPolicy: Orphan
+                managementPolicy: ObserveCreateUpdate
+                forProvider:
+                  manifest:
+                    apiVersion: storage.k8s.io/v1
+                    kind: StorageClass
+                    metadata:
+                      annotations:
+                        storageclass.kubernetes.io/is-default-class: "false"
+                      name: gp2
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterName
+                toFieldPath: spec.providerConfigRef.name
+
+          - name: eksc-object-storageclass-gp3
+            base:
+              apiVersion: kubernetes.crossplane.io/v1alpha1
+              kind: Object
+              spec:
+                deletionPolicy: Orphan
+                forProvider:
+                  manifest:
+                    apiVersion: storage.k8s.io/v1
+                    kind: StorageClass
+                    metadata:
+                      annotations:
+                        storageclass.kubernetes.io/is-default-class: "true"
+                      name: gp3
+                    parameters:
+                      encrypted: "true"
+                      fsType: ext4
+                      type: gp3
+                    provisioner: kubernetes.io/aws-ebs
+                    #reclaimPolicy: Delete
+                    volumeBindingMode: WaitForFirstConsumer
+                    allowVolumeExpansion: true
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterName
+                toFieldPath: spec.providerConfigRef.name
+
+          - name: eksc-object-configmap-aws-auth
+            base:
+              apiVersion: kubernetes.crossplane.io/v1alpha1
+              kind: Object
+              spec:
+                deletionPolicy: Orphan 
+                forProvider:
+                  manifest:
+                    apiVersion: v1
+                    kind: ConfigMap
+                    metadata:
+                      namespace: kube-system
+                      name: aws-auth
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterName
+                toFieldPath: spec.providerConfigRef.name
+              - type: CombineFromComposite
+                combine:
+                  strategy: string
+                  string:
+                    fmt: |
+                      - rolearn: "%s"
+                        username: system:node:{{EC2PrivateDNSName}}
+                        groups:
+                        - system:bootstrappers
+                        - system:nodes
+                      - rolearn: "arn:aws:iam::%s:role/%s"
+                        username: "account_developers"
+                        groups:
+                        - system:masters
+                      - rolearn: "arn:aws:iam::%s:role/NokiaNetworkBuilder"
+                        username: "account_developers"
+                        groups:
+                        - system:masters
+                      - rolearn: "%s"
+                        username: "eks-admin"
+                        groups:
+                        - system:masters
+                  variables:
+                    - fromFieldPath: status.clusterNodesRoleArn
+                    - fromFieldPath: spec.target.accountId
+                    - fromFieldPath: spec.parameters.accessRole
+                    - fromFieldPath: spec.root.accountId
+                    - fromFieldPath: status.eksAdminRoleArn
+                toFieldPath: spec.forProvider.manifest.data.mapRoles
+            readinessChecks:
+              - type: None
+
+          - name: eksc-providerconfig-kubernetes
+            base:
+              apiVersion: kubernetes.crossplane.io/v1alpha1
+              kind: ProviderConfig
+              spec:
+                credentials:
+                  source: Secret
+                  secretRef:
+                    namespace: crossplane-system
+                    key: kubeconfig
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterConnectionSecretName
+                toFieldPath: spec.credentials.secretRef.name
+                policy:
+                  fromFieldPath: Required
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterName
+                toFieldPath: metadata.name
+                policy:
+                  fromFieldPath: Required
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterSecretUid
+                toFieldPath: metadata.labels.dependsOnUid
+                policy:
+                  fromFieldPath: Required
+
+            readinessChecks:
+              - type: None
+
+          - name: eksc-providerconfig-helm
+            base:
+              apiVersion: helm.crossplane.io/v1alpha1
+              kind: ProviderConfig
+              spec:
+                credentials:
+                  source: Secret
+                  secretRef:
+                    namespace: crossplane-system
+                    key: kubeconfig
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterConnectionSecretName
+                toFieldPath: spec.credentials.secretRef.name
+                policy:
+                  fromFieldPath: Required
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterName
+                toFieldPath: metadata.name
+                policy:
+                  fromFieldPath: Required
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterSecretUid
+                toFieldPath: metadata.labels.dependsOnUid
+                policy:
+                  fromFieldPath: Required
+            readinessChecks:
+              - type: None
+
+          - name: eksc-openidconnectprovider
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: OpenIDConnectProvider
+              spec:
+                forProvider:
+                  clientIdList:
+                    - sts.amazonaws.com
+                  thumbprintList:
+                    - "ce777ad27909e070d99eece1ff2f774624e1e7e7"
+                    - "9e99a48a9960b14926bb7f3b02e22da2b0ab7280"
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterOidcIssuerUrl
+                toFieldPath: spec.forProvider.url
+                policy:
+                  fromFieldPath: Required
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterUid
+                toFieldPath: metadata.labels.dependsOnUid
+                policy:
+                  fromFieldPath: Required
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.arn
+                transforms:
+                  - type: match
+                    match:
+                      patterns:
+                        - type: regexp
+                          regexp: ".+"
+                          result: "True"
+                toFieldPath: status.clusterOidcProviderConfigReady
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.arn
+                toFieldPath: status.clusterOidcProviderArn
+
+          - name: eksc-role-nodegroup
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: Role
+              spec:
+                forProvider:
+                  assumeRolePolicy: |
+                    {
+                      "Version": "2008-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Principal": {
+                            "Service": "ec2.amazonaws.com"
+                          },
+                          "Action": "sts:AssumeRole"
+                        }
+                      ]
+                    }
+                  maxSessionDuration: 36000
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-ng"
+                toFieldPath: metadata.labels.roleName
+              - type: CombineFromComposite
+                combine:
+                  strategy: string
+                  string:
+                    fmt: "arn:aws:iam::%s:%s"
+                  variables:
+                    - fromFieldPath: spec.target.accountId
+                    - fromFieldPath: spec.target.permissionsBoundaryPolicy
+                toFieldPath: spec.forProvider.permissionsBoundary
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-ng"
+                toFieldPath: spec.forProvider.tags.Name
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-ng"
+                toFieldPath: metadata.annotations["crossplane.io/external-name"]
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.id
+                toFieldPath: status.clusterNodesRoleName
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.arn
+                toFieldPath: status.clusterNodesRoleArn
+
+          - name: eksc-rolepolicyattachment-workernode
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: RolePolicyAttachment
+              spec:
+                forProvider:
+                  policyArn: "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterNodesRoleName
+                toFieldPath: spec.forProvider.role
+
+          - name: eksc-rolepolicyattachment-ecrreadonly
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: RolePolicyAttachment
+              spec:
+                forProvider:
+                  policyArn: "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterNodesRoleName
+                toFieldPath: spec.forProvider.role
+
+          - name: eksc-rolepolicyattachment-ssmmanagedinstance
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: RolePolicyAttachment
+              spec:
+                forProvider:
+                  policyArn: "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterNodesRoleName
+                toFieldPath: spec.forProvider.role
+
+          - name: eksc-role-admin
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: Role
+              spec:
+                forProvider:
+                  maxSessionDuration: 36000
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: CombineFromComposite
+                combine:
+                  strategy: string
+                  string:
+                    fmt: |
+                      {
+                        "Version": "2008-10-17",
+                        "Statement": [
+                          {
+                            "Effect": "Allow",
+                            "Principal": {
+                              "AWS": "arn:aws:iam::%s:root"
+                            },
+                            "Action": "sts:AssumeRole"
+                          },
+                          {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": "%s"
+                            },
+                            "Action": "sts:AssumeRole"
+                          },
+                          {
+                            "Effect": "Allow",
+                            "Principal": {
+                              "AWS": "arn:aws:iam::%s:%s"
+                            },
+                            "Action": "sts:AssumeRole"
+                          }
+
+                        ]
+                      }
+                  variables:
+                    - fromFieldPath: spec.target.accountId
+                    - fromFieldPath: status.clusterNodesRoleArn
+                    - fromFieldPath: spec.target.accountId
+                    - fromFieldPath: spec.parameters.mgmtClusterNgRoleName
+                toFieldPath: spec.forProvider.assumeRolePolicy
+                policy:
+                  fromFieldPath: Required
+              - type: CombineFromComposite
+                combine:
+                  strategy: string
+                  string:
+                    fmt: "arn:aws:iam::%s:%s"
+                  variables:
+                    - fromFieldPath: spec.target.accountId
+                    - fromFieldPath: spec.target.permissionsBoundaryPolicy
+                toFieldPath: spec.forProvider.permissionsBoundary
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.clusterName
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-eks-admin"
+                toFieldPath: spec.forProvider.tags.Name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.clusterName
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-eks-admin"
+                toFieldPath: metadata.annotations["crossplane.io/external-name"]
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.id
+                toFieldPath: status.eksAdminRoleName
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.arn
+                toFieldPath: status.eksAdminRoleArn
+
+          - name: eksc-policy-admin
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: Policy
+              spec:
+                forProvider:
+                  policy: |
+                    {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Resource": "*",
+                          "Action": [
+                            "eks:*"
+                          ]
+                        }
+                      ]
+                    }
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.clusterName
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-eks-admin"
+                toFieldPath: metadata.annotations["crossplane.io/external-name"]
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.arn
+                toFieldPath: status.eksAdminPolicyArn
+
+          - name: eksc-rolepolicyattachment-admin
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: RolePolicyAttachment
+              spec:
+                forProvider: {}
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.eksAdminRoleName
+                toFieldPath: spec.forProvider.role
+                policy:
+                  fromFieldPath: Required
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.eksAdminPolicyArn
+                toFieldPath: spec.forProvider.policyArn
+                policy:
+                  fromFieldPath: Required
+
+          - name: eksc-policy-nodegroup
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: Policy
+              spec:
+                forProvider:
+                  policy: |
+                    {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Resource": "*",
+                          "Action": [
+                            "ec2:AssignPrivateIpAddresses",
+                            "ec2:AssignIpv6Addresses",
+                            "ec2:DescribeNetworkInterfaces",
+                            "ec2:DescribeSubnets",
+                            "ec2:ModifyInstanceAttribute"
+                          ]
+                        }
+                      ]
+                    }
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.accountId
+                toFieldPath: metadata.labels.accountId
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-nodegroup"
+                toFieldPath: metadata.annotations["crossplane.io/external-name"]
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.arn
+                toFieldPath: status.ngRolePolicyArn
+
+          - name: eksc-rolepolicyattachment-nodegroup
+            base:
+              apiVersion: iam.aws.upbound.io/v1beta1
+              kind: RolePolicyAttachment
+              spec:
+                forProvider: {}
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterNodesRoleName
+                toFieldPath: spec.forProvider.role
+                policy:
+                  fromFieldPath: Required
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.ngRolePolicyArn
+                toFieldPath: spec.forProvider.policyArn
+                policy:
+                  fromFieldPath: Required
+
+          - name: eksc-securitygroup-nodes
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta1
+              kind: SecurityGroup
+              spec:
+                deletionPolicy: Delete
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterName
+                toFieldPath: spec.forProvider.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: '%s-nodes-sg'
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterName
+                toFieldPath: spec.forProvider.tags.Name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: '%s-nodes-sg'
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.vpcId
+                toFieldPath: spec.forProvider.vpcId
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterUid
+                toFieldPath: metadata.labels.dependsOnUid
+                policy:
+                  fromFieldPath: Required
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.id
+                toFieldPath: status.clusterNodesSecurityGroupId
+
+          # sg rules for nodes
+          - name: eksc-securitygrouprule-ng-natgws
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta1
+              kind: SecurityGroupRule
+              spec:
+                forProvider:
+                  fromPort: 0
+                  protocol: tcp
+                  toPort: 65535
+                  type: ingress
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterNodesSecurityGroupId
+                toFieldPath: spec.forProvider.securityGroupId
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: spec.parameters.vpcNatGwRootZone1PublicIp
+                toFieldPath: spec.forProvider.cidrBlocks[0]
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s/32"
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: spec.parameters.vpcNatGwRootZone2PublicIp
+                toFieldPath: spec.forProvider.cidrBlocks[1]
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s/32"
+              #- type: FromCompositeFieldPath
+                 #policy:
+                 # fromFieldPath: Required
+                 #fromFieldPath: spec.parameters.vpcNatGwTargetZone1PublicIp
+                 #toFieldPath: spec.forProvider.cidrBlocks[2]
+                 #transforms:
+                 #- type: string
+                 #string:
+                 #    type: Format
+                 #    fmt: "%s/32"
+              #- type: FromCompositeFieldPath
+                 #policy:
+                 # fromFieldPath: Required
+                 #fromFieldPath: spec.parameters.vpcNatGwTargetZone2PublicIp
+                 #toFieldPath: spec.forProvider.cidrBlocks[3]
+                 #transforms:
+                 #- type: string
+                 #  string:
+                 #    type: Format
+                 #    fmt: "%s/32"
+
+          - name: eksc-securitygroupingressrule-ng-ng-all
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta1
+              kind: SecurityGroupIngressRule
+              spec:
+                forProvider:
+                  fromPort: -1
+                  ipProtocol: "-1"
+                  toPort: -1
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterNodesSecurityGroupId
+                toFieldPath: spec.forProvider.securityGroupId
+              # self referential
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterNodesSecurityGroupId
+                toFieldPath: spec.forProvider.referencedSecurityGroupId
+
+          - name: eksc-securitygrouprule-ng-vpc-tcp-all
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta1
+              kind: SecurityGroupRule
+              spec:
+                forProvider:
+                  fromPort: 0
+                  protocol: tcp
+                  toPort: 65535
+                  type: ingress
+                  description: "Allow VPC primary CIDR block"
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterNodesSecurityGroupId
+                toFieldPath: spec.forProvider.securityGroupId
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: spec.parameters.vpcCidrBlock
+                toFieldPath: spec.forProvider.cidrBlocks[0]
+
+          - name: eksc-securitygrouprule-ng-vpc-udp-all
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta1
+              kind: SecurityGroupRule
+              spec:
+                forProvider:
+                  fromPort: 0
+                  protocol: udp
+                  toPort: 65535
+                  type: ingress
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterNodesSecurityGroupId
+                toFieldPath: spec.forProvider.securityGroupId
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: spec.parameters.vpcCidrBlock
+                toFieldPath: spec.forProvider.cidrBlocks[0]
+
+          - name: eksc-securitygrouprule-ng-vpc-icmp-all
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta1
+              kind: SecurityGroupRule
+              spec:
+                forProvider:
+                  fromPort: -1
+                  protocol: icmp
+                  toPort: -1
+                  type: ingress
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterNodesSecurityGroupId
+                toFieldPath: spec.forProvider.securityGroupId
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: spec.parameters.vpcCidrBlock
+                toFieldPath: spec.forProvider.cidrBlocks[0]
+
+          - name: eksc-securitygroupegressrule-ng-all
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta1
+              kind: SecurityGroupEgressRule
+              spec:
+                forProvider:
+                  cidrIpv4: 0.0.0.0/0
+                  fromPort: -1
+                  ipProtocol: "-1"
+                  toPort: -1
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterNodesSecurityGroupId
+                toFieldPath: spec.forProvider.securityGroupId
+
+          # sg rules between nodes and the cluster
+
+          - name: eksc-securitygroupingressrule-cluster-ng-443
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta1
+              kind: SecurityGroupIngressRule
+              spec:
+                forProvider:
+                  fromPort: 443
+                  ipProtocol: "tcp"
+                  toPort: 443
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterSecurityGroupId
+                toFieldPath: spec.forProvider.securityGroupId
+                policy:
+                  fromFieldPath: Required
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterNodesSecurityGroupId
+                toFieldPath: spec.forProvider.referencedSecurityGroupId
+                policy:
+                  fromFieldPath: Required
+              - type: CombineFromComposite
+                combine:
+                  strategy: string
+                  string:
+                    fmt: "Ingress rule for port 443 from %s to %s"
+                  variables:
+                    - fromFieldPath: status.clusterNodesSecurityGroupId
+                    - fromFieldPath: status.clusterSecurityGroupId
+                toFieldPath: spec.forProvider.description
+                policy:
+                  fromFieldPath: Required
+
+          - name: eksc-securitygroupingressrule-ng-cluster-443
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta1
+              kind: SecurityGroupIngressRule
+              spec:
+                forProvider:
+                  fromPort: 443
+                  ipProtocol: tcp
+                  toPort: 443
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterNodesSecurityGroupId
+                toFieldPath: spec.forProvider.securityGroupId
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterSecurityGroupId
+                toFieldPath: spec.forProvider.referencedSecurityGroupId
+
+          - name: eksc-securitygroupingressrule-ng-cluster-1025plus
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta1
+              kind: SecurityGroupIngressRule
+              spec:
+                forProvider:
+                  fromPort: 1025
+                  ipProtocol: tcp
+                  toPort: 65535
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterNodesSecurityGroupId
+                toFieldPath: spec.forProvider.securityGroupId
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.clusterSecurityGroupId
+                toFieldPath: spec.forProvider.referencedSecurityGroupId
+
+          - name: eksc-securitygroupegressrule-ng-cluster-443
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta1
+              kind: SecurityGroupEgressRule
+              spec:
+                forProvider:
+                  fromPort: 443
+                  ipProtocol: "tcp"
+                  toPort: 443
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterSecurityGroupId
+                toFieldPath: spec.forProvider.securityGroupId
+                policy:
+                  fromFieldPath: Required
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterNodesSecurityGroupId
+                toFieldPath: spec.forProvider.referencedSecurityGroupId
+                policy:
+                  fromFieldPath: Required
+              - type: CombineFromComposite
+                combine:
+                  strategy: string
+                  string:
+                    fmt: "Egress rule for port 443 from %s to %s"
+                  variables:
+                    - fromFieldPath: status.clusterNodesSecurityGroupId
+                    - fromFieldPath: status.clusterSecurityGroupId
+                toFieldPath: spec.forProvider.description
+                policy:
+                  fromFieldPath: Required
+
+          - name: eksc-securitygroupegressrule-ng-cluster-1025plus
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta1
+              kind: SecurityGroupEgressRule
+              spec:
+                forProvider:
+                  fromPort: 1025
+                  ipProtocol: "tcp"
+                  toPort: 65535
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterSecurityGroupId
+                toFieldPath: spec.forProvider.securityGroupId
+                policy:
+                  fromFieldPath: Required
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterNodesSecurityGroupId
+                toFieldPath: spec.forProvider.referencedSecurityGroupId
+                policy:
+                  fromFieldPath: Required
+              - type: CombineFromComposite
+                combine:
+                  strategy: string
+                  string:
+                    fmt: "Egress rule for port 1025 to 65535 from SG %s to %s"
+                  variables:
+                    - fromFieldPath: status.clusterNodesSecurityGroupId
+                    - fromFieldPath: status.clusterSecurityGroupId
+                toFieldPath: spec.forProvider.description
+                policy:
+                  fromFieldPath: Required
+
+          - name: eksn-launchtemplate
+            base:
+              apiVersion: ec2.aws.upbound.io/v1beta2
+              kind: LaunchTemplate
+              spec:
+                forProvider:
+                  name: <PATCHED>
+                  description: <PATCHED>
+                  region: <PATCHED>
+                  imageId: <PATCHED>
+                  blockDeviceMappings:
+                    - deviceName: "/dev/xvda"
+                      ebs:
+                        deleteOnTermination: "true"
+                        volumeType: <PATCHED>
+                        volumeSize: <PATCHED>
+                  instanceType: <PATCHED>
+                  metadataOptions:
+                    httpPutResponseHopLimit: 2
+                    httpEndpoint: enabled
+                    httpTokens: <PATCHED>
+                  vpcSecurityGroupIds: [PATCHED]
+                  tagSpecifications:
+                    - resourceType: instance
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-node"
+                toFieldPath: spec.forProvider.name
+              - type: CombineFromComposite
+                policy:
+                  fromFieldPath: Required
+                combine:
+                  strategy: string
+                  string:
+                    fmt: "%s-%s-%s"
+                  variables:
+                    - fromFieldPath: metadata.name
+                    - fromFieldPath: status.clusterNodesSecurityGroupId
+                    - fromFieldPath: status.clusterOidcProviderConfigReady
+                toFieldPath: spec.forProvider.description
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: spec.parameters.nodesImageId
+                toFieldPath: spec.forProvider.imageId                
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.nodesVolumeType
+                toFieldPath: spec.forProvider.blockDeviceMappings[0].ebs.volumeType
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.nodesVolumeSize
+                toFieldPath: spec.forProvider.blockDeviceMappings[0].ebs.volumeSize
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.nodesInstanceType
+                toFieldPath: spec.forProvider.instanceType
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterSecurityGroupId
+                toFieldPath: spec.forProvider.vpcSecurityGroupIds[0]
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterNodesSecurityGroupId
+                toFieldPath: spec.forProvider.vpcSecurityGroupIds[1]
+              - type: CombineFromComposite
+                combine:
+                  strategy: string
+                  string:
+                    fmt: |-
+                      MIME-Version: 1.0
+                      Content-Type: multipart/mixed; boundary="//"
+
+                      --//
+                      Content-Type: text/x-shellscript; charset="us-ascii"
+
+                      #!/bin/bash
+                      set -o xtrace
+                      /etc/eks/bootstrap.sh %s --apiserver-endpoint %s --b64-cluster-ca %s
+
+                      --//--
+                  variables:
+                    - fromFieldPath: status.clusterName
+                    - fromFieldPath: status.clusterEndpointUrl
+                    - fromFieldPath: status.clusterCaCert
+                toFieldPath: spec.forProvider.userData
+                policy:
+                  fromFieldPath: Required
+                transforms:
+                  - type: string
+                    string:
+                      type: Convert
+                      convert: "ToBase64"
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.imdsV2HttpTokens
+                toFieldPath: spec.forProvider.metadataOptions.httpTokens
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.clusterName
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-Node"
+                toFieldPath: spec.forProvider.tagSpecifications[0].tags.Name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.clusterName
+                toFieldPath: spec.forProvider.tagSpecifications[0].tags
+                policy:
+                  toFieldPath: MergeObjects
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: '{"kubernetes.io/cluster/%s": "owned"}'
+                  - type: convert
+                    convert:
+                      toType: object
+                      format: json
+              - type: ToCompositeFieldPath
+                fromFieldPath: spec.forProvider.name
+                toFieldPath: status.nodeLaunchTemplateName
+
+          - name: eksn-nodegroup
+            base:
+              apiVersion: eks.aws.upbound.io/v1beta2
+              kind: NodeGroup
+              spec:
+                forProvider:
+                  clusterName: <PATCHED>
+                  region: <PATCHED>
+                  capacityType: <PATCHED>
+                  launchTemplate:
+                    name: none
+                    version: "1"
+                  nodeRoleArn: <PATCHED>
+                  scalingConfig:
+                    desiredSize: <PATCHED>
+                    minSize: <PATCHED>
+                    maxSize: <PATCHED>
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.provider
+                toFieldPath: spec.providerConfigRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.clusterName
+                toFieldPath: spec.forProvider.clusterName
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.target.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.capacityType
+                toFieldPath: spec.forProvider.capacityType
+              - type: FromCompositeFieldPath
+                policy:
+                  fromFieldPath: Required
+                fromFieldPath: status.nodeLaunchTemplateName
+                toFieldPath: spec.forProvider.launchTemplate.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: status.clusterNodesRoleArn
+                toFieldPath: spec.forProvider.nodeRoleArn
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.nodeGroupDesiredSize
+                toFieldPath: spec.forProvider.scalingConfig.desiredSize
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.nodeGroupMinSize
+                toFieldPath: spec.forProvider.scalingConfig.minSize
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.nodeGroupMaxSize
+                toFieldPath: spec.forProvider.scalingConfig.maxSize
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.nodesLabels
+                toFieldPath: spec.forProvider.labels
+                policy:
+                  toFieldPath: MergeObjects
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.vpcSubnetZone1Id
+                toFieldPath: spec.forProvider.subnetIds[0]
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.vpcSubnetZone2Id
+                toFieldPath: spec.forProvider.subnetIds[1]
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.resources[0].autoscalingGroups[0].name
+                toFieldPath: status.nodeGroupAutoScalingGroupName

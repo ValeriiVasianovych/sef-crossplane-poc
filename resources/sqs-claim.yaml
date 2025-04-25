@@ -1,0 +1,23 @@
+apiVersion: saas.nokia.com/v1alpha1
+kind: XSQS
+metadata:
+  name: sqs-queue
+  namespace: crossplane-system
+spec:
+  parameters:
+    queueName: "sf-dev-crossplane-sqs.fifo"
+    region: eu-central-1
+    fifoQueue: true
+    contentBasedDeduplication: false
+    delaySeconds: 0
+    maximumMessageSize: 2048
+    messageRetentionPeriod: 86400
+    receiveMessageWaitTimeSeconds: 10
+    visibilityTimeout: 30
+    sqsManagedSseEnabled: false
+    #redrivePolicy:
+    #  deadLetterTargetArn: "arn:aws:sqs:us-west-2:123456789012:dead-letter-queue"
+    #  maxReceiveCount: 5 
+    ownerName: "SaaS-Team"
+    projectId: "SQS Crossplane"
+    env: "Development"

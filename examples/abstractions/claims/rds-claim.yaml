@@ -1,0 +1,26 @@
+apiVersion: saas.nokia.com/v1alpha1
+kind: XRDS
+metadata:
+  name: rds-instance
+  namespace: crossplane-system
+spec:
+  parameters:
+    name: "sfmariadb"
+    region: "eu-central-1"
+    size: "db.t3.micro"
+    username: "sfdbadmin"
+    engine: "mariadb"
+    storageCapacity: 30
+    engineVersion: "10.6.14"
+    skipFinalSnapshot: true
+    publiclyAccessible: false
+    autoGeneratePassword: true
+    securityGroupName: "sf-dev-mariadb-sg"      
+    ownerName: "SaaS-Team"
+    projectId: "EKS Crossplane Project"
+    env: "Development"
+    writeConnectionSecretsToNamespace: "crossplane-system"
+    vpcId: "vpc-09bdaf208556da4d4"
+    vpcPrivateSubnets:
+      - "subnet-0861a68d1e356d550"
+      - "subnet-0fe37ed054b54a1e6"

@@ -1,0 +1,27 @@
+apiVersion: crossplane.org/v1alpha1
+kind: XVPCClaim
+metadata:
+  name: vpc-claim
+  namespace: crossplane-system
+spec:
+  parameters:
+    region: "eu-central-1"
+    vpcName: "vpc-crossplane"
+    vpcCidrBlock: "10.0.0.0/16"
+    
+    publicSubnetName: "public-subnet"
+    publicSubnetACidrBlock: "10.0.10.0/24"
+    publicSubnetAAvailabilityZone: "eu-central-1a"
+    publicSubnetBCidrBlock: "10.0.20.0/24"
+    publicSubnetBAvailabilityZone: "eu-central-1b"
+    
+    privateSubnetName: "private-subnet"
+    privateSubnetACidrBlock: "10.0.11.0/24"
+    privateSubnetAAvailabilityZone: "eu-central-1a"
+    
+    privateSubnetBCidrBlock: "10.0.21.0/24"
+    privateSubnetBAvailabilityZone: "eu-central-1b"
+    
+    ownerName: "SaaS-Team"
+    projectId: "VPC Crossplane Project"
+    env: "Development"

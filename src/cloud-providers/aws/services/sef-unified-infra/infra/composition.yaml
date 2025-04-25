@@ -1,0 +1,243 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: sf-composition
+  labels:
+    crossplane.io/xrd: xsfs.saas.nokia.com
+    nokia.com/saas-provider: aws
+    nokia.com/saas-version: "v0.1.0"
+spec:
+  writeConnectionSecretsToNamespace: crossplane-system
+  compositeTypeRef:
+    apiVersion: saas.nokia.com/v1alpha1
+    kind: XSFC
+  patchSets:
+
+    - name: region
+      patches:
+        - fromFieldPath: spec.parameters.region
+          toFieldPath: spec.forProvider.region
+
+    - name: common-tags
+      patches:
+        - fromFieldPath: spec.parameters.ownerName
+          toFieldPath: spec.forProvider.tags.ownerName
+        - fromFieldPath: spec.parameters.projectId
+          toFieldPath: spec.forProvider.tags.projectId
+        - fromFieldPath: spec.parameters.env
+          toFieldPath: spec.forProvider.tags.env
+
+  resources:
+    - name: vpc
+      base:
+        apiVersion: crossplane.org/v1alpha1
+        kind: XVPCClaim
+        metadata:
+          name: vpc-claim
+          namespace: crossplane-system
+        spec:
+          compositionSelector:
+            matchLabels:
+              crossplane.io/xrd: xvpcs.saas.nokia.com
+              nokia.com/saas-provider: aws
+              nokia.com/saas-version: "v0.1.0"
+          parameters:
+            region: <PATCHED>
+            vpcName: <PATCHED>
+            vpcCidrBlock: <PATCHED>
+            publicSubnetName: <PATCHED>
+            publicSubnetACidrBlock: <PATCHED>
+            publicSubnetAAvailabilityZone: <PATCHED>
+            publicSubnetBCidrBlock: <PATCHED>
+            publicSubnetBAvailabilityZone: <PATCHED>
+            privateSubnetName: <PATCHED>
+            privateSubnetACidrBlock: <PATCHED>
+            privateSubnetAAvailabilityZone: <PATCHED>
+            privateSubnetBCidrBlock: <PATCHED>
+            privateSubnetBAvailabilityZone: <PATCHED>
+      patches:
+        # General values
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: PatchSet
+          patchSetName: region
+        # From CRD to Composition
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpcName
+          toFieldPath: spec.parameters.vpcName
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpcCidrBlock
+          toFieldPath: spec.parameters.vpcCidrBlock
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.publicSubnetName
+          toFieldPath: spec.parameters.publicSubnetName
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.publicSubnetACidrBlock
+          toFieldPath: spec.parameters.publicSubnetACidrBlock
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.publicSubnetAAvailabilityZone
+          toFieldPath: spec.parameters.publicSubnetAAvailabilityZone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.publicSubnetBCidrBlock
+          toFieldPath: spec.parameters.publicSubnetBCidrBlock
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.publicSubnetBAvailabilityZone
+          toFieldPath: spec.parameters.publicSubnetBAvailabilityZone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.privateSubnetName
+          toFieldPath: spec.parameters.privateSubnetName
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.privateSubnetACidrBlock
+          toFieldPath: spec.parameters.privateSubnetACidrBlock
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.privateSubnetAAvailabilityZone
+          toFieldPath: spec.parameters.privateSubnetAAvailabilityZone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.privateSubnetBCidrBlock
+          toFieldPath: spec.parameters.privateSubnetBCidrBlock
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.privateSubnetBAvailabilityZone
+          toFieldPath: spec.parameters.privateSubnetBAvailabilityZone
+        # From Composition to CRD
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.vpcId
+          toFieldPath: status.vpcId
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.privateSubnetIds
+          toFieldPath: status.privateSubnetIds
+
+    - name: rds
+      base:
+        apiVersion: crossplane.org/v1alpha1
+        kind: XRDSClaim
+        metadata:
+          name: rds-claim
+          namespace: crossplane-system
+        spec:
+          compositionSelector:
+            matchLabels:
+              crossplane.io/xrd: xrdss.saas.nokia.com
+              nokia.com/saas-provider: aws
+              nokia.com/saas-version: "v0.1.0"
+          parameters:
+            region: <PATCHED>
+            name: <PATCHED>
+            size: <PATCHED>
+            username: <PATCHED>
+            engine: <PATCHED>
+            storageCapacity: <PATCHED>
+            engineVersion: <PATCHED>
+            skipFinalSnapshot: <PATCHED>
+            publiclyAccessible: <PATCHED>
+            autoGeneratePassword: <PATCHED>
+            securityGroupName: <PATCHED>
+            writeConnectionSecretsToNamespace: <PATCHED>
+            vpcId: <PATCHED>
+            vpcPrivateSubnets:
+              - <PATCHED>
+              - <PATCHED>
+      patches:
+        # General values
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: PatchSet
+          patchSetName: region
+        # From CRD to Composition
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.rdsName
+          toFieldPath: spec.parameters.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.size
+          toFieldPath: spec.parameters.size
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.username
+          toFieldPath: spec.parameters.username
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.engine
+          toFieldPath: spec.parameters.engine
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.storageCapacity
+          toFieldPath: spec.parameters.storageCapacity
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.engineVersion
+          toFieldPath: spec.parameters.engineVersion
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.skipFinalSnapshot
+          toFieldPath: spec.parameters.skipFinalSnapshot
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.publiclyAccessible
+          toFieldPath: spec.parameters.publiclyAccessible
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.autoGeneratePassword
+          toFieldPath: spec.parameters.autoGeneratePassword
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.securityGroupName
+          toFieldPath: spec.parameters.securityGroupName
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.writeConnectionSecretsToNamespace
+          toFieldPath: spec.parameters.writeConnectionSecretsToNamespace
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.vpcId
+          toFieldPath: spec.parameters.vpcId
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.privateSubnetIds
+          toFieldPath: spec.parameters.vpcPrivateSubnets
+  
+    - name: sqs
+      base:
+        apiVersion: crossplane.org/v1alpha1
+        kind: XSQSClaim
+        metadata:
+          name: sqs-claim
+          namespace: crossplane-system
+        spec:
+          compositionSelector:
+            matchLabels:
+              crossplane.io/xrd: xsqss.saas.nokia.com
+              nokia.com/saas-provider: aws
+              nokia.com/saas-version: "v0.1.0"
+          parameters:
+            region: <PATCHED>
+            queueName: <PATCHED>
+            fifoQueue: <PATCHED>
+            contentBasedDeduplication: <PATCHED>
+            delaySeconds: <PATCHED>
+            maximumMessageSize: <PATCHED>
+            messageRetentionPeriod: <PATCHED>
+            receiveMessageWaitTimeSeconds: <PATCHED>
+            visibilityTimeout: <PATCHED>
+            sqsManagedSseEnabled: <PATCHED>
+          patches:
+            # General values
+            - type: PatchSet
+              patchSetName: common-tags
+            - type: PatchSet
+              patchSetName: region
+            # From CRD to Composition
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.queueName
+              toFieldPath: spec.parameters.queueName
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.fifoQueue
+              toFieldPath: spec.parameters.fifoQueue
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.contentBasedDeduplication
+              toFieldPath: spec.parameters.contentBasedDeduplication
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.delaySeconds
+              toFieldPath: spec.parameters.delaySeconds
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.maximumMessageSize
+              toFieldPath: spec.parameters.maximumMessageSize
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.messageRetentionPeriod
+              toFieldPath: spec.parameters.messageRetentionPeriod
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.receiveMessageWaitTimeSeconds
+              toFieldPath: spec.parameters.receiveMessageWaitTimeSeconds
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.visibilityTimeout
+              toFieldPath: spec.parameters.visibilityTimeout
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.sqsManagedSseEnabled
+              toFieldPath: spec.parameters.sqsManagedSseEnabled

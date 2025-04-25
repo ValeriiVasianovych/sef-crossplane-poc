@@ -1,0 +1,252 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xekscs.saas.nokia.com
+  labels:
+    app.kubernetes.io/version: "v0.1.0"
+spec:
+  defaultCompositeDeletePolicy: Foreground
+  defaultCompositionUpdatePolicy: Manual
+  group: saas.nokia.com
+  names:
+    kind: XEKSC
+    plural: xekscs
+  claimNames:
+    kind: XEKSClaim
+    plural: xeksclaims
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                ecrSource:
+                  type: object
+                target:
+                  type: object
+                  properties:
+                    provider:
+                      type: string
+                    region:
+                      type: string
+                    accountId:
+                      type: string
+                    permissionsBoundaryPolicy:
+                      type: string
+                      # default: "policy/NokiaBoundary"
+                  required:
+                    - provider
+                    - region
+                    - accountId
+                    - permissionsBoundaryPolicy
+                root:
+                  type: object
+                  properties:
+                    accountId:
+                      type: string
+                  required:
+                    - accountId
+                parameters:
+                  type: object
+                  properties:
+                    tags:
+                      type: object
+                      default: {}
+                      additionalProperties:
+                        type: string
+                    enabledClusterLogTypes:
+                      type: array
+                      items:
+                        type: string
+                      default:
+                        - api
+                        - audit
+                        - authenticator
+                        - controllerManager
+                        - scheduler                    
+                    vpcId:
+                      type: string
+                    vpcCidrBlock:
+                      type: string
+                    vpcEnablePrefixDelegation:
+                      type: string
+                      enum: ["true", "false"]
+                      default: "false"
+                    vpcSubnetZone1Id:
+                      type: string
+                    vpcSubnetZone2Id:
+                      type: string
+                    vpcNatGwRootZone1PublicIp:
+                      type: string
+                      default: "127.0.0.1"
+                    vpcNatGwRootZone2PublicIp:
+                      type: string
+                      default: "127.0.0.2"
+                    vpcNatGwTargetZone1PublicIp:
+                      type: string
+                      default: "127.0.0.3"
+                    vpcNatGwTargetZone2PublicIp:
+                      type: string
+                      default: "127.0.0.4"
+                    # customerDnPrefix:
+                    #   type: string
+                    #   default: "10.95.81.0/24"
+                    # customerRanPrefix:
+                    #   type: string
+                    #   default: "10.95.80.0/24"
+                    clusterName:
+                      type: string
+                    extraSecurityGroupIds:
+                      type: array
+                      items:
+                        type: string
+                      default: []
+                    k8s-version:
+                      type: string
+                      default: "1.30"
+                    mgmtClusterNgRoleName:
+                      description:
+                      type: string
+                      default: "root"
+                    # upfPeersCidrBlocks:
+                    #   type: array
+                    #   items:
+                    #     type: string
+                    #   default:
+                    #     - "10.253.0.0/24"
+                    clusterAllowedCidrs:
+                      type: array
+                      items:
+                        type: string
+                      default:
+                        - "131.228.2.0/27"
+                        - "131.228.32.160/27"
+                        - "37.220.140.34/32"
+                        - "135.245.48.76/32"
+                        - "135.245.48.77/32"
+                        - "135.245.48.86/32"
+                        - "135.245.48.87/32"
+                        - "135.245.20.0/27"
+                    accessRole:
+                      type: string
+                      default: "DEVELOPER"
+                      description: The name of an IAM access role to be included in the remote cluster access config map
+                    capacityType:
+                      type: string
+                      default: ON_DEMAND
+                      enum:
+                        - SPOT
+                        - ON_DEMAND
+                    imdsV2HttpTokens:
+                      type: string
+                      default: "required"
+                      enum: ["optional", "required"]
+                    nodeGroupDesiredSize:
+                      type: number
+                      default: 0
+                    nodeGroupMaxSize:
+                      type: number
+                      default: 0
+                    nodeGroupMinSize:
+                      type: number
+                      default: 0
+                    nodesImageId:
+                      type: string
+                    nodesInstanceType:
+                      type: string
+                      default: "t3.small"
+                    nodesLabels:
+                      type: object
+                      default: {}
+                      x-kubernetes-preserve-unknown-fields: true
+                    nodesVolumeSize:
+                      type: number
+                      default: 50
+                    nodesVolumeType:
+                      type: string
+                      default: "gp3"
+
+                  required:
+                    - vpcId
+                    - vpcCidrBlock
+                    - clusterName
+                    - vpcSubnetZone1Id
+                    - vpcSubnetZone2Id
+            status:
+              type: object
+              properties:
+                clusterCaCert:
+                  type: string
+                clusterConnectionSecretName:
+                  type: string
+                clusterConnectionSecretNamespace:
+                  type: string
+                clusterEncryptionKeyArn:
+                  type: string
+                clusterEndpointUrl:
+                  type: string
+                clusterMultusSecurityGroupId:
+                  type: string
+                clusterName:
+                  type: string
+                clusterNodesRoleArn:
+                  type: string
+                clusterNodesRoleName:
+                  type: string
+                clusterNodesSecurityGroupId:
+                  type: string
+                clusterOidcProvider:
+                  type: string
+                clusterOidcProviderArn:
+                  type: string
+                clusterOidcProviderConfigReady:
+                  type: string
+                clusterSecurityGroupId:
+                  type: string
+                eksAdminRoleArn:
+                  type: string
+                publicLoadBalancersSecurityGroupId:
+                  type: string
+                ekscRoleName:
+                  type: string
+                ekscRoleArn:
+                  type: string
+                clusterRoleUid:
+                  type: string
+                clusterPolicyUid:
+                  type: string
+                rcPolicyUid:
+                  type: string
+                clusterSecretUid:
+                  type: string
+                clusterOidcIssuerUrl:
+                  type: string
+                clusterUid:
+                  type: string
+                vpccniRoleName:
+                  type: string
+                vpccniRoleArn:
+                  type: string
+                vpccniRolePolicyArnAttached:
+                  type: string
+                ebsRoleName:
+                  type: string
+                ebsRoleArn:
+                  type: string
+                ebsRolePolicyArnAttached:
+                  type: string
+                eksAdminRoleName:
+                  type: string
+                eksAdminPolicyArn:
+                  type: string
+                ngRolePolicyArn:
+                  type: string
+                nodeGroupAutoScalingGroupName:
+                  type: string
+                nodeLaunchTemplateName:
+                  type: string
