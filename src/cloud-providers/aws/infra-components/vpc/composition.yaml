@@ -51,6 +51,9 @@ spec:
           patchSetName: region
         - type: PatchSet
           patchSetName: common-tags
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.id
+          toFieldPath: status.vpcId
 
     # Internet Gateway
     - name: igw
@@ -142,6 +145,9 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.publicSubnetAAvailabilityZone
           toFieldPath: metadata.labels.zone
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.id
+          toFieldPath: status.vpcPublicSubnetsIds[0]
 
     - name: public-subnet-b
       base:
@@ -193,6 +199,9 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.publicSubnetBAvailabilityZone
           toFieldPath: metadata.labels.zone
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.id
+          toFieldPath: status.vpcPublicSubnetsIds[1]
 
     - name: private-subnet-a
       base:
@@ -244,6 +253,9 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.privateSubnetAAvailabilityZone
           toFieldPath: metadata.labels.zone
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.id
+          toFieldPath: status.vpcPrivateSubnetsIds[0]
 
     - name: private-subnet-b
       base:
@@ -295,6 +307,9 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.privateSubnetBAvailabilityZone
           toFieldPath: metadata.labels.zone
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.id
+          toFieldPath: status.vpcPrivateSubnetsIds[1]
 
     # Elastic IPs
     - name: elastic-ip-a
@@ -424,6 +439,9 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.publicSubnetAAvailabilityZone
           toFieldPath: spec.forProvider.subnetIdSelector.matchLabels.zone
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.publicIp
+          toFieldPath: status.vpcNatGwRootZone1PublicIp
 
     - name: nat-gateway-b
       base:
@@ -475,6 +493,9 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.publicSubnetBAvailabilityZone
           toFieldPath: spec.forProvider.subnetIdSelector.matchLabels.zone
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.publicIp
+          toFieldPath: status.vpcNatGwRootZone2PublicIp
 
     # Route Tables
     - name: public-route-table

@@ -84,4 +84,26 @@ spec:
                     - vpcCidrBlock
               required:
                 - parameters
+            status:
+              type: object
+              properties:
+                vpcId:
+                  type: string
+                  description: "ID of the created VPC"
+                vpcPrivateSubnetsIds:
+                  type: array
+                  description: "List of private subnet IDs"
+                  items:
+                    type: string
+                vpcPublicSubnetsIds:
+                  type: array
+                  description: "List of public subnet IDs"
+                  items:
+                    type: string
+                vpcNatGwRootZone1PublicIp:
+                  type: string
+                  description: "Public IP address of NAT Gateway in first availability zone"
+                vpcNatGwRootZone2PublicIp:
+                  type: string
+                  description: "Public IP address of NAT Gateway in second availability zone"
 
