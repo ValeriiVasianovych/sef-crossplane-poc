@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# ./delete-package.sh aws sef-unified-infra
+set -e
 
-DEBUG_MODE=false
-source ../scripts/configure-shell.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../../scripts/configure-shell.sh"
 
 PROVIDER=$1
 SERVICE=$2
