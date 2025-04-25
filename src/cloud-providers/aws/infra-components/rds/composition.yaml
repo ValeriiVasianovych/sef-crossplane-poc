@@ -12,15 +12,18 @@ spec:
     apiVersion: saas.nokia.com/v1alpha1
     kind: XRDSC
   patchSets:
+    - name: region
+      patches:
+        - fromFieldPath: spec.parameters.region
+          toFieldPath: spec.forProvider.region
     - name: common-tags
       patches:
-        - fromFieldPath: "spec.parameters.ownerName"
-          toFieldPath: "spec.forProvider.tags.ownerName"
-        - fromFieldPath: "spec.parameters.projectId"
-          toFieldPath: "spec.forProvider.tags.projectId"
-        - fromFieldPath: "spec.parameters.env"
-          toFieldPath: "spec.forProvider.tags.env"
-
+        - fromFieldPath: spec.parameters.ownerName
+          toFieldPath: spec.forProvider.tags.ownerName
+        - fromFieldPath: spec.parameters.projectId
+          toFieldPath: spec.forProvider.tags.projectId
+        - fromFieldPath: spec.parameters.env
+          toFieldPath: spec.forProvider.tags.env
   resources:
     - name: subnet-group
       base:
@@ -44,6 +47,8 @@ spec:
         - type: ToCompositeFieldPath
           fromFieldPath: "metadata.name"
           toFieldPath: "status.subnetGroupName"
+          policy:
+            fromFieldPath: Required
 
     - name: security-group
       base:
@@ -160,20 +165,21 @@ spec:
                 fmt: "%s-input"
         - type: PatchSet
           patchSetName: common-tags
-        #- type: FromCompositeFieldPath
-        #  fromFieldPath: "spec.parameters.name"
-        #  toFieldPath: "status.identifier"
-        #  policy:
-        #    fromFieldPath: Required
         - type: FromCompositeFieldPath
           fromFieldPath: "spec.parameters.name"
           toFieldPath: "metadata.name"
-          #- type: FromCompositeFieldPath
-          #fromFieldPath: "spec.parameters.name"
-          #toFieldPath: "spec.forProvider.dbName"
+          policy:
+            fromFieldPath: Required
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.name"
+          toFieldPath: "spec.forProvider.dbName"
+          policy:
+            fromFieldPath: Required
         - type: FromCompositeFieldPath
           fromFieldPath: "spec.parameters.region"
           toFieldPath: "spec.forProvider.region"
+          policy:
+            fromFieldPath: Required
         - type: FromCompositeFieldPath
           fromFieldPath: "spec.parameters.size"
           toFieldPath: "spec.forProvider.instanceClass"

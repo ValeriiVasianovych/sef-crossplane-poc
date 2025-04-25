@@ -38,7 +38,7 @@ spec:
         spec:
           compositionSelector:
             matchLabels:
-              crossplane.io/xrd: xvpcs.saas.nokia.com
+              crossplane.io/xrd: xvpccs.saas.nokia.com
               nokia.com/saas-provider: aws
               nokia.com/saas-version: "v0.1.0"
           parameters:
@@ -116,7 +116,7 @@ spec:
         spec:
           compositionSelector:
             matchLabels:
-              crossplane.io/xrd: xrdss.saas.nokia.com
+              crossplane.io/xrd: xrdscs.saas.nokia.com
               nokia.com/saas-provider: aws
               nokia.com/saas-version: "v0.1.0"
           parameters:
@@ -193,7 +193,7 @@ spec:
         spec:
           compositionSelector:
             matchLabels:
-              crossplane.io/xrd: xsqss.saas.nokia.com
+              crossplane.io/xrd: xsqscs.saas.nokia.com
               nokia.com/saas-provider: aws
               nokia.com/saas-version: "v0.1.0"
           parameters:
