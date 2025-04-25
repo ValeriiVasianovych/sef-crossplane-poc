@@ -3,7 +3,7 @@ kind: Composition
 metadata:
   name: vpc-composition
   labels:
-    crossplane.io/xrd: xvpcs.saas.nokia.com
+    crossplane.io/xrd: xvpccs.saas.nokia.com
     nokia.com/saas-provider: aws
     nokia.com/saas-version: "v0.1.0"
 spec:
