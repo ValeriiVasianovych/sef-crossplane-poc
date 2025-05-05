@@ -30,7 +30,7 @@ spec:
   resources:
     - name: vpc
       base:
-        apiVersion: crossplane.org/v1alpha1
+        apiVersion: saas.nokia.com/v1alpha1
         kind: XVPCClaim
         metadata:
           name: vpc-claim
