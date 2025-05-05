@@ -100,14 +100,14 @@ spec:
           toFieldPath: spec.parameters.privateSubnetBAvailabilityZone
         # From Composition to CRD
         - type: ToCompositeFieldPath
-          fromFieldPath: metadata.annotations.vpcId  # Changed from status.vpcId
+          fromFieldPath: status.vpcId
           toFieldPath: status.vpcId
         - type: ToCompositeFieldPath
-          fromFieldPath: metadata.annotations.privateSubnetIds  # Changed from status.privateSubnetIds
-          toFieldPath: status.privateSubnetIds
+          fromFieldPath: status.vpcPrivateSubnetsIds
+          toFieldPath: status.vpcPrivateSubnetsIds
         - type: ToCompositeFieldPath
-          fromFieldPath: metadata.annotations.publicSubnetIds  # Changed from status.publicSubnetIds
-          toFieldPath: status.publicSubnetIds
+          fromFieldPath: status.vpcPublicSubnetsIds
+          toFieldPath: status.vpcPublicSubnetsIds
         - type: ToCompositeFieldPath
           fromFieldPath: status.vpcNatGwRootZone1PublicIp
           toFieldPath: status.vpcNatGwRootZone1PublicIp
