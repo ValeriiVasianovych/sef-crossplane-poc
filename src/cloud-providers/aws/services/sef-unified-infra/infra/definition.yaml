@@ -124,19 +124,27 @@ spec:
                 type: array
                 items:
                   type: string
+              publicSubnetIds:
+                type: array
+                items:
+                  type: string
+              vpcNatGwRootZone1PublicIp:
+                type: string
+              vpcNatGwRootZone2PublicIp:
+                type: string
               # RDS Status
-              address:
-                type: string
-              port:
-                type: integer
-              password:
-                type: string
-              subnetGroupName:
-                type: string
-              securityGroupId:
-                type: string
-              identifier:
-                type: string
-              dbInstanceArn:
-                type: string
+              # address:
+              #   type: string
+              # port:
+              #   type: integer
+              # password:
+              #   type: string
+              # subnetGroupName:
+              #   type: string
+              # securityGroupId:
+              #   type: string
+              # identifier:
+              #   type: string
+              # dbInstanceArn:
+              #   type: string
  

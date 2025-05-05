@@ -26,26 +26,26 @@ spec:
     privateSubnetBCidrBlock: "10.0.21.0/24"
     privateSubnetBAvailabilityZone: "eu-central-1b"
       
-    # RDS Vars
-    rdsName: "sfmariadb"
-    size: "db.t3.micro"
-    username: "sfdbadmin"
-    engine: "mariadb"
-    storageCapacity: 30
-    engineVersion: "10.6.14"
-    skipFinalSnapshot: true
-    publiclyAccessible: false
-    autoGeneratePassword: true
-    securityGroupName: "sf-dev-mariadb-sg"      
-    writeConnectionSecretsToNamespace: "crossplane-system"
+    # # RDS Vars
+    # rdsName: "sfmariadb"
+    # size: "db.t3.micro"
+    # username: "sfdbadmin"
+    # engine: "mariadb"
+    # storageCapacity: 30
+    # engineVersion: "10.6.14"
+    # skipFinalSnapshot: true
+    # publiclyAccessible: false
+    # autoGeneratePassword: true
+    # securityGroupName: "sf-dev-mariadb-sg"      
+    # writeConnectionSecretsToNamespace: "crossplane-system"
 
-    # SQS Vars
-    queueName: "sf-dev-crossplane-sqs.fifo"
-    fifoQueue: true
-    contentBasedDeduplication: false
-    delaySeconds: 0
-    maximumMessageSize: 2048
-    messageRetentionPeriod: 86400
-    receiveMessageWaitTimeSeconds: 10
-    visibilityTimeout: 30
-    sqsManagedSseEnabled: false
+    # # SQS Vars
+    # queueName: "sf-dev-crossplane-sqs.fifo"
+    # fifoQueue: true
+    # contentBasedDeduplication: false
+    # delaySeconds: 0
+    # maximumMessageSize: 2048
+    # messageRetentionPeriod: 86400
+    # receiveMessageWaitTimeSeconds: 10
+    # visibilityTimeout: 30
+    # sqsManagedSseEnabled: false
