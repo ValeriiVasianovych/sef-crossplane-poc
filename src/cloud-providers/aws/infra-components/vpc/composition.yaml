@@ -29,8 +29,6 @@ spec:
       base:
         apiVersion: ec2.aws.upbound.io/v1beta1
         kind: VPC
-        metadata:
-          namespace: crossplane-system # added
         spec:
           forProvider:
             region: <PATCHED>
