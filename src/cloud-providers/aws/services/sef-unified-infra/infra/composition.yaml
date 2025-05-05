@@ -16,16 +16,16 @@ spec:
     - name: region
       patches:
         - fromFieldPath: spec.parameters.region
-          toFieldPath: metadata.labels.region  # Changed from spec.forProvider.region
+          toFieldPath: metadata.labels.region
 
     - name: common-tags
       patches:
         - fromFieldPath: spec.parameters.ownerName
-          toFieldPath: metadata.labels.ownerName  # Changed from spec.forProvider.tags.ownerName
+          toFieldPath: metadata.labels.ownerName 
         - fromFieldPath: spec.parameters.projectId
-          toFieldPath: metadata.labels.projectId  # Changed from spec.forProvider.tags.projectId
+          toFieldPath: metadata.labels.projectId 
         - fromFieldPath: spec.parameters.env
-          toFieldPath: metadata.labels.env  # Changed from spec.forProvider.tags.env
+          toFieldPath: metadata.labels.env 
 
   resources:
     - name: vpc
