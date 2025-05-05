@@ -24,10 +24,11 @@ spec:
         properties:
           spec:
             type: object
+            required:
+              - parameters
             properties:
               parameters:
                 type: object
-                x-kubernetes-preserve-unknown-fields: true
                 properties:
                   # Common Vars
                   region:
@@ -106,18 +107,9 @@ spec:
                     type: integer
                   sqsManagedSseEnabled:
                     type: boolean
-                  vpcId:
-                    type: string
-                  vpcPrivateSubnets:
-                    type: array
-                    items:
-                      type: string
-              required:
-                - parameters
           status:
             type: object
             properties:
-              # VPC Status
               vpcId:
                 type: string
               privateSubnetIds:
