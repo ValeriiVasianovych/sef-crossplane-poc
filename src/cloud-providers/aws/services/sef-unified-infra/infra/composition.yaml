@@ -2,6 +2,7 @@ apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
   name: sf-composition
+  namespace: crossplane-system
   labels:
     crossplane.io/xrd: xsfs.saas.nokia.com
     nokia.com/saas-provider: aws
