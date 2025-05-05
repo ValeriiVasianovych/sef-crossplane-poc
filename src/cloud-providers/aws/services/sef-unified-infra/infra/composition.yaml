@@ -16,16 +16,16 @@ spec:
     - name: region
       patches:
         - fromFieldPath: spec.parameters.region
-          toFieldPath: spec.forProvider.region
+          toFieldPath: metadata.labels.region  # Changed from spec.forProvider.region
 
     - name: common-tags
       patches:
         - fromFieldPath: spec.parameters.ownerName
-          toFieldPath: spec.forProvider.tags.ownerName
+          toFieldPath: metadata.labels.ownerName  # Changed from spec.forProvider.tags.ownerName
         - fromFieldPath: spec.parameters.projectId
-          toFieldPath: spec.forProvider.tags.projectId
+          toFieldPath: metadata.labels.projectId  # Changed from spec.forProvider.tags.projectId
         - fromFieldPath: spec.parameters.env
-          toFieldPath: spec.forProvider.tags.env
+          toFieldPath: metadata.labels.env  # Changed from spec.forProvider.tags.env
 
   resources:
     - name: vpc
@@ -100,13 +100,13 @@ spec:
           toFieldPath: spec.parameters.privateSubnetBAvailabilityZone
         # From Composition to CRD
         - type: ToCompositeFieldPath
-          fromFieldPath: status.vpcId
+          fromFieldPath: metadata.annotations.vpcId  # Changed from status.vpcId
           toFieldPath: status.vpcId
         - type: ToCompositeFieldPath
-          fromFieldPath: status.privateSubnetIds
+          fromFieldPath: metadata.annotations.privateSubnetIds  # Changed from status.privateSubnetIds
           toFieldPath: status.privateSubnetIds
         - type: ToCompositeFieldPath
-          fromFieldPath: status.publicSubnetIds
+          fromFieldPath: metadata.annotations.publicSubnetIds  # Changed from status.publicSubnetIds
           toFieldPath: status.publicSubnetIds
         - type: ToCompositeFieldPath
           fromFieldPath: status.vpcNatGwRootZone1PublicIp
