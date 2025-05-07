@@ -2,7 +2,7 @@ apiVersion: saas.nokia.com/v1alpha1
 kind: XSFClaim
 metadata:
   name: sf-infra-claim
-  namespace: crossplane-system
+#  namespace: crossplane-system
 spec:
   parameters:
     # Common Vars

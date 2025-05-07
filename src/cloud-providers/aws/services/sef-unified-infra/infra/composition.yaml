@@ -3,7 +3,7 @@ kind: Composition
 metadata:
   name: sf-composition
   labels:
-    crossplane.io/xrd: xsfs.saas.nokia.com
+    crossplane.io/xrd: xsfcs.saas.nokia.com
     nokia.com/saas-provider: aws
     nokia.com/saas-version: "v0.1.0"
 spec:
@@ -34,7 +34,7 @@ spec:
         kind: XVPCClaim
         metadata:
           name: vpc-claim
-          namespace: crossplane-system
+         # namespace: crossplane-system
         spec:
           compositionSelector:
             matchLabels:
