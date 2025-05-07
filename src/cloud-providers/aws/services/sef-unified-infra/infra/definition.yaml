@@ -8,6 +8,7 @@ spec:
   defaultCompositeDeletePolicy: Foreground
   defaultCompositionUpdatePolicy: Manual
   group: saas.nokia.com
+  scope: Namespaced
   names:
     kind: XSFC
     plural: xsfcs
