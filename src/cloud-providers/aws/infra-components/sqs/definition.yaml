@@ -32,7 +32,6 @@ spec:
                       type: string
                     region:
                       type: string
-                      default: "eu-central-1"
                     fifoQueue: 
                       type: boolean
                     contentBasedDeduplication:
