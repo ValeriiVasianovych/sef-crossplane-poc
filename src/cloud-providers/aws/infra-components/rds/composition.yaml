@@ -47,8 +47,6 @@ spec:
         - type: ToCompositeFieldPath
           fromFieldPath: "metadata.name"
           toFieldPath: "status.subnetGroupName"
-          policy:
-            fromFieldPath: Required
 
     - name: security-group
       base:
@@ -129,8 +127,8 @@ spec:
           name: <PATCHED>
         spec:
           forProvider:
-            dbName: <PATCHED>
-            # identifier: <PATCHED>
+            #name: <PATCHED>
+            #dbName: "database-crossplane"
             region: <PATCHED>
             instanceClass: <PATCHED>
             username: <PATCHED>
@@ -165,26 +163,20 @@ spec:
                 fmt: "%s-input"
         - type: PatchSet
           patchSetName: common-tags
+        #- type: FromCompositeFieldPath
+        #  fromFieldPath: "spec.parameters.name"
+        #  toFieldPath: "status.identifier"
+        #  policy:
+        #    fromFieldPath: Required
         - type: FromCompositeFieldPath
           fromFieldPath: "spec.parameters.name"
           toFieldPath: "metadata.name"
-          policy:
-            fromFieldPath: Required
-        - type: FromCompositeFieldPath
-          fromFieldPath: "spec.parameters.dbName"
-          toFieldPath: "spec.forProvider.dbName"
-          policy:
-            fromFieldPath: Required
-        # - type: FromCompositeFieldPath
-        #   fromFieldPath: "spec.parameters.identifier"
-        #   toFieldPath: "spec.forProvider.identifier"
-        #   policy:
-        #     fromFieldPath: Required
+          #- type: FromCompositeFieldPath
+          #fromFieldPath: "spec.parameters.name"
+          #toFieldPath: "spec.forProvider.dbName"
         - type: FromCompositeFieldPath
           fromFieldPath: "spec.parameters.region"
           toFieldPath: "spec.forProvider.region"
-          policy:
-            fromFieldPath: Required
         - type: FromCompositeFieldPath
           fromFieldPath: "spec.parameters.size"
           toFieldPath: "spec.forProvider.instanceClass"
