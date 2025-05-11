@@ -27,7 +27,8 @@ spec:
     privateSubnetBAvailabilityZone: "eu-central-1b"
       
     # RDS Vars
-    rdsName: "sfmariadb"
+    dbName: "sfmariadb"
+    identifier: "sfmariadb-incubator"
     size: "db.t3.micro"
     username: "sfdbadmin"
     engine: "mariadb"
@@ -39,13 +40,13 @@ spec:
     securityGroupName: "sf-dev-mariadb-sg"      
     writeConnectionSecretsToNamespace: "crossplane-system"
 
-    # # SQS Vars
-    # queueName: "sf-dev-crossplane-sqs.fifo"
-    # fifoQueue: true
-    # contentBasedDeduplication: false
-    # delaySeconds: 0
-    # maximumMessageSize: 2048
-    # messageRetentionPeriod: 86400
-    # receiveMessageWaitTimeSeconds: 10
-    # visibilityTimeout: 30
-    # sqsManagedSseEnabled: false
+    # SQS Vars
+    queueName: "sf-dev-crossplane-sqs.fifo"
+    fifoQueue: true
+    contentBasedDeduplication: false
+    delaySeconds: 0
+    maximumMessageSize: 2048
+    messageRetentionPeriod: 86400
+    receiveMessageWaitTimeSeconds: 10
+    visibilityTimeout: 30
+    sqsManagedSseEnabled: false

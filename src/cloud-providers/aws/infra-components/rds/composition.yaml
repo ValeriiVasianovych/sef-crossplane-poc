@@ -129,8 +129,7 @@ spec:
           name: <PATCHED>
         spec:
           forProvider:
-            #name: <PATCHED>
-            #dbName: "database-crossplane"
+            dbName: <PATCHED>
             region: <PATCHED>
             instanceClass: <PATCHED>
             username: <PATCHED>
@@ -171,8 +170,13 @@ spec:
           policy:
             fromFieldPath: Required
         - type: FromCompositeFieldPath
-          fromFieldPath: "spec.parameters.name"
+          fromFieldPath: "spec.parameters.dbName"
           toFieldPath: "spec.forProvider.dbName"
+          policy:
+            fromFieldPath: Required
+        - type: FromCompositeFieldPath
+          fromFieldPath: "spec.parameters.identifier"
+          toFieldPath: "spec.forProvider.identifier"
           policy:
             fromFieldPath: Required
         - type: FromCompositeFieldPath

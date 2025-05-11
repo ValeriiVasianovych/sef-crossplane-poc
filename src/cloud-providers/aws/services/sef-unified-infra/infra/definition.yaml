@@ -66,7 +66,9 @@ spec:
                   privateSubnetBAvailabilityZone:
                     type: string
                   # RDS Parameters
-                  rdsName:
+                  dbName:
+                    type: string
+                  identifier:
                     type: string
                   size:
                     type: string
@@ -107,6 +109,8 @@ spec:
                     type: integer
                   sqsManagedSseEnabled:
                     type: boolean
+
+
           status:
             type: object
             properties:

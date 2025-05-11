@@ -128,7 +128,8 @@ spec:
               nokia.com/saas-version: "v0.1.0"
           parameters:
             region: <PATCHED>
-            name: <PATCHED>
+            dbName: <PATCHED>
+            identifier: <PATCHED>
             size: <PATCHED>
             username: <PATCHED>
             engine: <PATCHED>
@@ -151,8 +152,11 @@ spec:
           patchSetName: region
         # From CRD to Composition
         - type: FromCompositeFieldPath
-          fromFieldPath: spec.parameters.rdsName
-          toFieldPath: spec.parameters.name
+          fromFieldPath: spec.parameters.dbName
+          toFieldPath: spec.parameters.dbName
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.identifier
+          toFieldPath: spec.parameters.identifier
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.size
           toFieldPath: spec.parameters.size
@@ -191,62 +195,60 @@ spec:
           fromFieldPath: status.vpcPrivateSubnetsIds
           toFieldPath: spec.parameters.vpcPrivateSubnets
 
-
-    # - name: sqs
-    #   base:
-    #     apiVersion: crossplane.org/v1alpha1
-    #     kind: XSQSClaim
-    #     metadata:
-    #       name: sqs-claim
-    #       namespace: crossplane-system
-    #     spec:
-    #       compositionSelector:
-    #         matchLabels:
-    #           crossplane.io/xrd: xsqscs.saas.nokia.com
-    #           nokia.com/saas-provider: aws
-    #           nokia.com/saas-version: "v0.1.0"
-    #       parameters:
-    #         region: <PATCHED>
-    #         queueName: <PATCHED>
-    #         fifoQueue: <PATCHED>
-    #         contentBasedDeduplication: <PATCHED>
-    #         delaySeconds: <PATCHED>
-    #         maximumMessageSize: <PATCHED>
-    #         messageRetentionPeriod: <PATCHED>
-    #         receiveMessageWaitTimeSeconds: <PATCHED>
-    #         visibilityTimeout: <PATCHED>
-    #         sqsManagedSseEnabled: <PATCHED>
-    #       patches:
-    #         # General values
-    #         - type: PatchSet
-    #           patchSetName: common-tags
-    #         - type: PatchSet
-    #           patchSetName: region
-    #         # From CRD to Composition
-    #         - type: FromCompositeFieldPath
-    #           fromFieldPath: spec.parameters.queueName
-    #           toFieldPath: spec.parameters.queueName
-    #         - type: FromCompositeFieldPath
-    #           fromFieldPath: spec.parameters.fifoQueue
-    #           toFieldPath: spec.parameters.fifoQueue
-    #         - type: FromCompositeFieldPath
-    #           fromFieldPath: spec.parameters.contentBasedDeduplication
-    #           toFieldPath: spec.parameters.contentBasedDeduplication
-    #         - type: FromCompositeFieldPath
-    #           fromFieldPath: spec.parameters.delaySeconds
-    #           toFieldPath: spec.parameters.delaySeconds
-    #         - type: FromCompositeFieldPath
-    #           fromFieldPath: spec.parameters.maximumMessageSize
-    #           toFieldPath: spec.parameters.maximumMessageSize
-    #         - type: FromCompositeFieldPath
-    #           fromFieldPath: spec.parameters.messageRetentionPeriod
-    #           toFieldPath: spec.parameters.messageRetentionPeriod
-    #         - type: FromCompositeFieldPath
-    #           fromFieldPath: spec.parameters.receiveMessageWaitTimeSeconds
-    #           toFieldPath: spec.parameters.receiveMessageWaitTimeSeconds
-    #         - type: FromCompositeFieldPath
-    #           fromFieldPath: spec.parameters.visibilityTimeout
-    #           toFieldPath: spec.parameters.visibilityTimeout
-    #         - type: FromCompositeFieldPath
-    #           fromFieldPath: spec.parameters.sqsManagedSseEnabled
-    #           toFieldPath: spec.parameters.sqsManagedSseEnabled
+    - name: sqs
+      base:
+        apiVersion: crossplane.org/v1alpha1
+        kind: XSQSC
+        metadata:
+          name: xsqs
+        spec:
+          compositionSelector:
+            matchLabels:
+              crossplane.io/xrd: xsqscs.saas.nokia.com
+              nokia.com/saas-provider: aws
+              nokia.com/saas-version: "v0.1.0"
+          parameters:
+            region: <PATCHED>
+            queueName: <PATCHED>
+            fifoQueue: <PATCHED>
+            contentBasedDeduplication: <PATCHED>
+            delaySeconds: <PATCHED>
+            maximumMessageSize: <PATCHED>
+            messageRetentionPeriod: <PATCHED>
+            receiveMessageWaitTimeSeconds: <PATCHED>
+            visibilityTimeout: <PATCHED>
+            sqsManagedSseEnabled: <PATCHED>
+          patches:
+            # General values
+            - type: PatchSet
+              patchSetName: common-tags
+            - type: PatchSet
+              patchSetName: region
+            # From CRD to Composition
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.queueName
+              toFieldPath: spec.parameters.queueName
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.fifoQueue
+              toFieldPath: spec.parameters.fifoQueue
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.contentBasedDeduplication
+              toFieldPath: spec.parameters.contentBasedDeduplication
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.delaySeconds
+              toFieldPath: spec.parameters.delaySeconds
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.maximumMessageSize
+              toFieldPath: spec.parameters.maximumMessageSize
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.messageRetentionPeriod
+              toFieldPath: spec.parameters.messageRetentionPeriod
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.receiveMessageWaitTimeSeconds
+              toFieldPath: spec.parameters.receiveMessageWaitTimeSeconds
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.visibilityTimeout
+              toFieldPath: spec.parameters.visibilityTimeout
+            - type: FromCompositeFieldPath
+              fromFieldPath: spec.parameters.sqsManagedSseEnabled
+              toFieldPath: spec.parameters.sqsManagedSseEnabled

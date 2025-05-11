@@ -30,6 +30,10 @@ spec:
                   properties:
                     name:
                       type: string
+                    dbName:
+                      type: string
+                    identifier:
+                      type: string
                     region:
                       type: string
                     size:
