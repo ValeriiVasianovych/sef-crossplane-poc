@@ -56,10 +56,7 @@ spec:
     provider: "default"
     permissionsBoundaryPolicy: "policy/NokiaBoundary"
     clusterName: "eks-crossplane"
-    vpcId: "vpc-09d82ca90e1cb44e1"
     #eksVpcCidrBlock: "10.0.0.0/24"  # vpcCidrBlock
-    vpcSubnetZone1Id: "subnet-0cc7380a1d83afe3c"
-    vpcSubnetZone2Id: "subnet-0e34b37b8337b01c8"
     k8s-version: "1.32"
     capacityType: "ON_DEMAND"
     imdsV2HttpTokens: "required"
@@ -75,8 +72,6 @@ spec:
       common: "true"
     nodesVolumeSize: 60
     nodesVolumeType: "gp3"
-    vpcNatGwRootZone1PublicIp: "18.192.131.130"
-    vpcNatGwRootZone2PublicIp: "3.124.130.160"
     clusterAllowedCidrs:
       - "131.228.2.0/27"
       - "131.228.32.160/27"

@@ -372,7 +372,6 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: status.vpcNatGwRootZone2PublicIp
           toFieldPath: spec.parameters.vpcNatGwRootZone2PublicIp
-        # patch clusterAllowedCidrs
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.clusterAllowedCidrs
           toFieldPath: spec.parameters.clusterAllowedCidrs

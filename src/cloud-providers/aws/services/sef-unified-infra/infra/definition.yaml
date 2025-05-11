@@ -112,10 +112,6 @@ spec:
                     type: string
                   # vpcCidrBlock:
                   #   type: string
-                  vpcSubnetZone1Id:
-                    type: string
-                  vpcSubnetZone2Id:
-                    type: string
                   k8s-version:
                     type: string
                   capacityType:
