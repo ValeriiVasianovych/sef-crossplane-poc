@@ -17,8 +17,6 @@ spec:
       patches:
         - fromFieldPath: spec.parameters.region
           toFieldPath: spec.parameters.region
-        - fromFieldPath: spec.parameters.region
-          toFieldPath: metadata.labels.region
 
     - name: common-tags
       patches:
