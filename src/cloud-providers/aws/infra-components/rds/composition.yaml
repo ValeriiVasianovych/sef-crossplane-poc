@@ -130,6 +130,7 @@ spec:
         spec:
           forProvider:
             dbName: <PATCHED>
+            identifier: <PATCHED>
             region: <PATCHED>
             instanceClass: <PATCHED>
             username: <PATCHED>
