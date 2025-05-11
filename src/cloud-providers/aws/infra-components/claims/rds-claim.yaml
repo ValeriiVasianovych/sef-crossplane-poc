@@ -5,8 +5,8 @@ metadata:
   namespace: crossplane-system
 spec:
   parameters:
-    dbName: "sfmariadb"
-    identifier: "sfmariadb-incubator"
+    dbName: "sf-dev-crossplane"
+    identifier: "sf-dev-crossplane-incubator"
     region: "eu-central-1"
     size: "db.t3.micro"
     username: "sfdbadmin"

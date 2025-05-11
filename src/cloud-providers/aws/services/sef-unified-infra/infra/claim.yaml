@@ -27,8 +27,8 @@ spec:
     privateSubnetBAvailabilityZone: "eu-central-1b"
       
     # RDS Vars
-    dbName: "sfmariadb"
-    identifier: "sfmariadb-incubator"
+    dbName: "sf-dev-crossplane"
+    identifier: "sf-dev-crossplane-incubator"
     size: "db.t3.micro"
     username: "sfdbadmin"
     engine: "mariadb"
