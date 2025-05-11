@@ -68,8 +68,6 @@ spec:
                   # RDS Parameters
                   dbName:
                     type: string
-                  identifier:
-                    type: string
                   size:
                     type: string
                   username:
@@ -109,7 +107,48 @@ spec:
                     type: integer
                   sqsManagedSseEnabled:
                     type: boolean
-
+                  # EKS Parameters
+                  clusterName:
+                    type: string
+                  # vpcCidrBlock:
+                  #   type: string
+                  vpcSubnetZone1Id:
+                    type: string
+                  vpcSubnetZone2Id:
+                    type: string
+                  k8s-version:
+                    type: string
+                  capacityType:
+                    type: string
+                  imdsV2HttpTokens:
+                    type: string
+                  nodeGroupDesiredSize:
+                    type: integer
+                  nodeGroupMaxSize:
+                    type: integer
+                  nodeGroupMinSize:
+                    type: integer
+                  nodesImageId:
+                    type: string
+                  nodesInstanceType:
+                    type: string
+                  nodesLabels:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  nodesVolumeSize:
+                    type: integer
+                  nodesVolumeType:
+                    type: string
+                  clusterAllowedCidrs:
+                    type: array
+                    items:
+                      type: string
+                  accountId:
+                    type: string
+                  provider:
+                    type: string
+                  permissionsBoundaryPolicy:
+                    type: string
           status:
             type: object
             properties:
@@ -132,21 +171,3 @@ spec:
               vpcNatGwRootZone2PublicIp:
                 type: string
                 description: "Public IP address of NAT Gateway in second availability zone"
-
-
-              # RDS Status
-              # address:
-              #   type: string
-              # port:
-              #   type: integer
-              # password:
-              #   type: string
-              # subnetGroupName:
-              #   type: string
-              # securityGroupId:
-              #   type: string
-              # identifier:
-              #   type: string
-              # dbInstanceArn:
-              #   type: string
- 

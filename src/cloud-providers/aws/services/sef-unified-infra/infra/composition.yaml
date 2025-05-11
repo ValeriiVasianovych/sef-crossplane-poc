@@ -155,9 +155,9 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.dbName
           toFieldPath: spec.parameters.dbName
-        - type: FromCompositeFieldPath
-          fromFieldPath: spec.parameters.identifier
-          toFieldPath: spec.parameters.identifier
+        # - type: FromCompositeFieldPath
+        #   fromFieldPath: spec.parameters.identifier
+        #   toFieldPath: spec.parameters.identifier
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.size
           toFieldPath: spec.parameters.size
@@ -252,3 +252,131 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.sqsManagedSseEnabled
           toFieldPath: spec.parameters.sqsManagedSseEnabled
+
+    - name: eks
+      base:
+        apiVersion: saas.nokia.com/v1alpha1
+        kind: XEKSC
+        metadata:
+          name: xeks
+        spec:
+          compositionSelector:
+            matchLabels:
+              crossplane.io/xrd: xsqscs.saas.nokia.com
+              nokia.com/saas-provider: aws
+              nokia.com/saas-version: "v0.1.0"
+          target:
+            region: <PATCHED>
+            accountId: <PATCHED>
+            provider: <PATCHED>
+            permissionsBoundaryPolicy: <PATCHED>
+          root:
+            accountId: <PATCHED>
+          parameters:
+            clusterName: <PATCHED>
+            vpcId: <PATCHED>
+            vpcCidrBlock: <PATCHED>
+            vpcSubnetZone1Id: <PATCHED>
+            vpcSubnetZone2Id: <PATCHED>
+            k8s-version: <PATCHED>
+            capacityType: <PATCHED>
+            imdsV2HttpTokens: <PATCHED>
+            nodeGroupDesiredSize: <PATCHED>
+            nodeGroupMaxSize: <PATCHED>
+            nodeGroupMinSize: <PATCHED>
+            nodesImageId: <PATCHED>
+            nodesInstanceType: <PATCHED>
+            nodesLabels:
+              environment: <PATCHED>
+              team: <PATCHED>
+              project: <PATCHED>
+              common: <PATCHED>
+            nodesVolumeSize: <PATCHED>
+            nodesVolumeType: <PATCHED>
+            vpcNatGwRootZone1PublicIp: <PATCHED>
+            vpcNatGwRootZone2PublicIp: <PATCHED>
+            clusterAllowedCidrs: <PATCHED>
+      patches:
+        # From CRD to Composition
+        # Patch target section
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: spec.target.region
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.accountId
+          toFieldPath: spec.target.accountId
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.provider
+          toFieldPath: spec.target.provider
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.permissionsBoundaryPolicy
+          toFieldPath: spec.target.permissionsBoundaryPolicy
+        # Patch root section
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.accountId
+          toFieldPath: spec.root.accountId
+        # Patch parameters section
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.clusterName
+          toFieldPath: spec.parameters.clusterName
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.vpcId
+          toFieldPath: spec.parameters.vpcId
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpcCidrBlock
+          toFieldPath: spec.parameters.vpcCidrBlock
+          # Get first element from list of subnets vpcPrivateSubnetsIds
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.vpcPrivateSubnetsIds[0]
+          toFieldPath: spec.parameters.vpcSubnetZone1Id
+        # Get second element from list of subnets vpcPrivateSubnetsIds
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.vpcPrivateSubnetsIds[1]
+          toFieldPath: spec.parameters.vpcSubnetZone2Id
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.k8s-version
+          toFieldPath: spec.parameters.k8s-version
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.capacityType
+          toFieldPath: spec.parameters.capacityType
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.imdsV2HttpTokens
+          toFieldPath: spec.parameters.imdsV2HttpTokens
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.nodeGroupDesiredSize
+          toFieldPath: spec.parameters.nodeGroupDesiredSize
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.nodeGroupMaxSize
+          toFieldPath: spec.parameters.nodeGroupMaxSize
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.nodeGroupMinSize
+          toFieldPath: spec.parameters.nodeGroupMinSize
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.nodesImageId
+          toFieldPath: spec.parameters.nodesImageId
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.nodesInstanceType
+          toFieldPath: spec.parameters.nodesInstanceType
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.nodesLabels
+          toFieldPath: spec.parameters.nodesLabels
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.nodesVolumeSize
+          toFieldPath: spec.parameters.nodesVolumeSize
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.nodesVolumeType
+          toFieldPath: spec.parameters.nodesVolumeType
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.vpcNatGwRootZone1PublicIp
+          toFieldPath: spec.parameters.vpcNatGwRootZone1PublicIp
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.vpcNatGwRootZone2PublicIp
+          toFieldPath: spec.parameters.vpcNatGwRootZone2PublicIp
+        # patch clusterAllowedCidrs
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.clusterAllowedCidrs
+          toFieldPath: spec.parameters.clusterAllowedCidrs
+
+
+          
+          

@@ -130,7 +130,7 @@ spec:
         spec:
           forProvider:
             dbName: <PATCHED>
-            identifier: <PATCHED>
+            # identifier: <PATCHED>
             region: <PATCHED>
             instanceClass: <PATCHED>
             username: <PATCHED>
@@ -175,11 +175,11 @@ spec:
           toFieldPath: "spec.forProvider.dbName"
           policy:
             fromFieldPath: Required
-        - type: FromCompositeFieldPath
-          fromFieldPath: "spec.parameters.identifier"
-          toFieldPath: "spec.forProvider.identifier"
-          policy:
-            fromFieldPath: Required
+        # - type: FromCompositeFieldPath
+        #   fromFieldPath: "spec.parameters.identifier"
+        #   toFieldPath: "spec.forProvider.identifier"
+        #   policy:
+        #     fromFieldPath: Required
         - type: FromCompositeFieldPath
           fromFieldPath: "spec.parameters.region"
           toFieldPath: "spec.forProvider.region"

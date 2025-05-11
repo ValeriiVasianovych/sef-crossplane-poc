@@ -32,8 +32,8 @@ spec:
                       type: string
                     dbName:
                       type: string
-                    identifier:
-                      type: string
+                    # identifier:
+                    #   type: string
                     region:
                       type: string
                     size:

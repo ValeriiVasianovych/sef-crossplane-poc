@@ -6,7 +6,7 @@ metadata:
 spec:
   parameters:
     dbName: "sf-dev-crossplane"
-    identifier: "sf-dev-crossplane-incubator"
+    # identifier: "sf-dev-crossplane-incubator"
     region: "eu-central-1"
     size: "db.t3.micro"
     username: "sfdbadmin"
