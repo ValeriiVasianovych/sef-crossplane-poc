@@ -116,11 +116,10 @@ spec:
 
     - name: rds
       base:
-        apiVersion: crossplane.org/v1alpha1
+        apiVersion: saas.nokia.com/v1alpha1
         kind: XRDSC
         metadata:
           name: xrds
-          namespace: crossplane-system
         spec:
           compositionSelector:
             matchLabels:
