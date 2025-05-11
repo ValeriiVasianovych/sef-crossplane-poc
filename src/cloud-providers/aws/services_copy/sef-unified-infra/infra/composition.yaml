@@ -31,9 +31,9 @@ spec:
     - name: vpc
       base:
         apiVersion: saas.nokia.com/v1alpha1
-        kind: XVPCC # changed
+        kind: XVPCClaim
         metadata:
-          name: xvpc # changed
+          name: vpc-claim
         spec:
           compositionSelector:
             matchLabels:
