@@ -13,6 +13,7 @@ spec:
     kind: XSFC
   patchSets:
 
+    # General variables
     - name: region
       patches:
         - fromFieldPath: spec.parameters.region
@@ -21,19 +22,19 @@ spec:
     - name: common-tags
       patches:
         - fromFieldPath: spec.parameters.ownerName
-          toFieldPath: metadata.labels.ownerName 
+          toFieldPath: metadata.labels.ownerName
         - fromFieldPath: spec.parameters.projectId
-          toFieldPath: metadata.labels.projectId 
+          toFieldPath: metadata.labels.projectId
         - fromFieldPath: spec.parameters.env
-          toFieldPath: metadata.labels.env 
+          toFieldPath: metadata.labels.env
 
   resources:
     - name: vpc
       base:
         apiVersion: saas.nokia.com/v1alpha1
-        kind: XVPCC # changed
+        kind: XVPCC
         metadata:
-          name: xvpc # changed
+          name: xvpc
         spec:
           compositionSelector:
             matchLabels:
@@ -55,7 +56,7 @@ spec:
             privateSubnetBCidrBlock: <PATCHED>
             privateSubnetBAvailabilityZone: <PATCHED>
       patches:
-        # General values
+        # General variables
         - type: PatchSet
           patchSetName: common-tags
         - type: PatchSet
@@ -145,7 +146,7 @@ spec:
               - <PATCHED>
               - <PATCHED>
       patches:
-        # General values
+        # General variables
         - type: PatchSet
           patchSetName: common-tags
         - type: PatchSet
@@ -187,7 +188,6 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.writeConnectionSecretsToNamespace
           toFieldPath: spec.parameters.writeConnectionSecretsToNamespace
-        # From Composition to CRD
         - type: FromCompositeFieldPath
           fromFieldPath: status.vpcId
           toFieldPath: spec.parameters.vpcId
@@ -218,37 +218,37 @@ spec:
             receiveMessageWaitTimeSeconds: <PATCHED>
             visibilityTimeout: <PATCHED>
             sqsManagedSseEnabled: <PATCHED>
-          patches:
-            # General values
-            - type: PatchSet
-              patchSetName: common-tags
-            - type: PatchSet
-              patchSetName: region
-            # From CRD to Composition
-            - type: FromCompositeFieldPath
-              fromFieldPath: spec.parameters.queueName
-              toFieldPath: spec.parameters.queueName
-            - type: FromCompositeFieldPath
-              fromFieldPath: spec.parameters.fifoQueue
-              toFieldPath: spec.parameters.fifoQueue
-            - type: FromCompositeFieldPath
-              fromFieldPath: spec.parameters.contentBasedDeduplication
-              toFieldPath: spec.parameters.contentBasedDeduplication
-            - type: FromCompositeFieldPath
-              fromFieldPath: spec.parameters.delaySeconds
-              toFieldPath: spec.parameters.delaySeconds
-            - type: FromCompositeFieldPath
-              fromFieldPath: spec.parameters.maximumMessageSize
-              toFieldPath: spec.parameters.maximumMessageSize
-            - type: FromCompositeFieldPath
-              fromFieldPath: spec.parameters.messageRetentionPeriod
-              toFieldPath: spec.parameters.messageRetentionPeriod
-            - type: FromCompositeFieldPath
-              fromFieldPath: spec.parameters.receiveMessageWaitTimeSeconds
-              toFieldPath: spec.parameters.receiveMessageWaitTimeSeconds
-            - type: FromCompositeFieldPath
-              fromFieldPath: spec.parameters.visibilityTimeout
-              toFieldPath: spec.parameters.visibilityTimeout
-            - type: FromCompositeFieldPath
-              fromFieldPath: spec.parameters.sqsManagedSseEnabled
-              toFieldPath: spec.parameters.sqsManagedSseEnabled
+      patches:
+        # General variables
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: PatchSet
+          patchSetName: region
+        # From CRD to Composition
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.queueName
+          toFieldPath: spec.parameters.queueName
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.fifoQueue
+          toFieldPath: spec.parameters.fifoQueue
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.contentBasedDeduplication
+          toFieldPath: spec.parameters.contentBasedDeduplication
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.delaySeconds
+          toFieldPath: spec.parameters.delaySeconds
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.maximumMessageSize
+          toFieldPath: spec.parameters.maximumMessageSize
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.messageRetentionPeriod
+          toFieldPath: spec.parameters.messageRetentionPeriod
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.receiveMessageWaitTimeSeconds
+          toFieldPath: spec.parameters.receiveMessageWaitTimeSeconds
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.visibilityTimeout
+          toFieldPath: spec.parameters.visibilityTimeout
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.sqsManagedSseEnabled
+          toFieldPath: spec.parameters.sqsManagedSseEnabled
