@@ -15,155 +15,155 @@ spec:
     kind: XSFClaim
     plural: xsfclaims
   versions:
-  - name: v1alpha1
-    served: true
-    referenceable: true
-    schema:
-      openAPIV3Schema:
-        type: object
-        properties:
-          spec:
-            type: object
-            required:
-              - parameters
-            properties:
-              parameters:
-                type: object
-                properties:
-                  # Common Vars
-                  region:
-                    type: string
-                  # Common Tags
-                  ownerName:
-                    type: string
-                  projectId:
-                    type: string
-                  env:
-                    type: string
-                  # VPC Parameters
-                  vpcName:
-                    type: string
-                  vpcCidrBlock:
-                    type: string
-                  publicSubnetName:
-                    type: string
-                  publicSubnetACidrBlock:
-                    type: string
-                  publicSubnetAAvailabilityZone:
-                    type: string
-                  publicSubnetBCidrBlock:
-                    type: string
-                  publicSubnetBAvailabilityZone:
-                    type: string
-                  privateSubnetName:
-                    type: string
-                  privateSubnetACidrBlock:
-                    type: string
-                  privateSubnetAAvailabilityZone:
-                    type: string
-                  privateSubnetBCidrBlock:
-                    type: string
-                  privateSubnetBAvailabilityZone:
-                    type: string
-                  # RDS Parameters
-                  dbName:
-                    type: string
-                  size:
-                    type: string
-                  username:
-                    type: string
-                  engine:
-                    type: string
-                  storageCapacity:
-                    type: integer
-                  engineVersion:
-                    type: string
-                  skipFinalSnapshot:
-                    type: boolean
-                  publiclyAccessible:
-                    type: boolean
-                  autoGeneratePassword:
-                    type: boolean
-                  securityGroupName:
-                    type: string
-                  writeConnectionSecretsToNamespace:
-                    type: string
-                  # SQS Parameters
-                  queueName:
-                    type: string
-                  fifoQueue:
-                    type: boolean
-                  contentBasedDeduplication:
-                    type: boolean
-                  delaySeconds:
-                    type: integer
-                  maximumMessageSize:
-                    type: integer
-                  messageRetentionPeriod:
-                    type: integer
-                  receiveMessageWaitTimeSeconds:
-                    type: integer
-                  visibilityTimeout:
-                    type: integer
-                  sqsManagedSseEnabled:
-                    type: boolean
-                  # EKS Parameters
-                  clusterName:
-                    type: string
-                  # vpcCidrBlock:
-                  #   type: string
-                  k8s-version:
-                    type: string
-                  capacityType:
-                    type: string
-                  imdsV2HttpTokens:
-                    type: string
-                  nodeGroupDesiredSize:
-                    type: integer
-                  nodeGroupMaxSize:
-                    type: integer
-                  nodeGroupMinSize:
-                    type: integer
-                  nodesImageId:
-                    type: string
-                  nodesInstanceType:
-                    type: string
-                  nodesLabels:
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  nodesVolumeSize:
-                    type: integer
-                  nodesVolumeType:
-                    type: string
-                  clusterAllowedCidrs:
-                    type: array
-                    items:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required:
+                - parameters
+              properties:
+                parameters:
+                  type: object
+                  properties:
+                    # Common Vars
+                    region:
                       type: string
-                  accountId:
-                    type: string
-                  provider:
-                    type: string
-                  permissionsBoundaryPolicy:
-                    type: string
-          status:
-            type: object
-            properties:
-              vpcId:
-                type: string
-                description: "ID of the created VPC"
-              vpcPrivateSubnetsIds:
-                type: array
-                description: "List of private subnet IDs"
-                items:
+                    # Common Tags
+                    ownerName:
+                      type: string
+                    projectId:
+                      type: string
+                    env:
+                      type: string
+                    # VPC Parameters
+                    vpcName:
+                      type: string
+                    vpcCidrBlock:
+                      type: string
+                    publicSubnetName:
+                      type: string
+                    publicSubnetACidrBlock:
+                      type: string
+                    publicSubnetAAvailabilityZone:
+                      type: string
+                    publicSubnetBCidrBlock:
+                      type: string
+                    publicSubnetBAvailabilityZone:
+                      type: string
+                    privateSubnetName:
+                      type: string
+                    privateSubnetACidrBlock:
+                      type: string
+                    privateSubnetAAvailabilityZone:
+                      type: string
+                    privateSubnetBCidrBlock:
+                      type: string
+                    privateSubnetBAvailabilityZone:
+                      type: string
+                    # RDS Parameters
+                    dbName:
+                      type: string
+                    size:
+                      type: string
+                    username:
+                      type: string
+                    engine:
+                      type: string
+                    storageCapacity:
+                      type: integer
+                    engineVersion:
+                      type: string
+                    skipFinalSnapshot:
+                      type: boolean
+                    publiclyAccessible:
+                      type: boolean
+                    autoGeneratePassword:
+                      type: boolean
+                    securityGroupName:
+                      type: string
+                    writeConnectionSecretsToNamespace:
+                      type: string
+                    # SQS Parameters
+                    queueName:
+                      type: string
+                    fifoQueue:
+                      type: boolean
+                    contentBasedDeduplication:
+                      type: boolean
+                    delaySeconds:
+                      type: integer
+                    maximumMessageSize:
+                      type: integer
+                    messageRetentionPeriod:
+                      type: integer
+                    receiveMessageWaitTimeSeconds:
+                      type: integer
+                    visibilityTimeout:
+                      type: integer
+                    sqsManagedSseEnabled:
+                      type: boolean
+                    # EKS Parameters
+                    # clusterName:
+                    #   type: string
+                    # # vpcCidrBlock:
+                    # #   type: string
+                    # k8s-version:
+                    #   type: string
+                    # capacityType:
+                    #   type: string
+                    # imdsV2HttpTokens:
+                    #   type: string
+                    # nodeGroupDesiredSize:
+                    #   type: integer
+                    # nodeGroupMaxSize:
+                    #   type: integer
+                    # nodeGroupMinSize:
+                    #   type: integer
+                    # nodesImageId:
+                    #   type: string
+                    # nodesInstanceType:
+                    #   type: string
+                    # nodesLabels:
+                    #   type: object
+                    #   x-kubernetes-preserve-unknown-fields: true
+                    # nodesVolumeSize:
+                    #   type: integer
+                    # nodesVolumeType:
+                    #   type: string
+                    # clusterAllowedCidrs:
+                    #   type: array
+                    #   items:
+                    #     type: string
+                    # accountId:
+                    #   type: string
+                    # provider:
+                    #   type: string
+                    # permissionsBoundaryPolicy:
+                    #   type: string
+            status:
+              type: object
+              properties:
+                vpcId:
                   type: string
-              vpcPublicSubnetsIds:
-                type: array
-                description: "List of public subnet IDs"
-                items:
+                  description: "ID of the created VPC"
+                vpcPrivateSubnetsIds:
+                  type: array
+                  description: "List of private subnet IDs"
+                  items:
+                    type: string
+                vpcPublicSubnetsIds:
+                  type: array
+                  description: "List of public subnet IDs"
+                  items:
+                    type: string
+                vpcNatGwRootZone1PublicIp:
                   type: string
-              vpcNatGwRootZone1PublicIp:
-                type: string
-                description: "Public IP address of NAT Gateway in first availability zone"
-              vpcNatGwRootZone2PublicIp:
-                type: string
-                description: "Public IP address of NAT Gateway in second availability zone"
+                  description: "Public IP address of NAT Gateway in first availability zone"
+                vpcNatGwRootZone2PublicIp:
+                  type: string
+                  description: "Public IP address of NAT Gateway in second availability zone"

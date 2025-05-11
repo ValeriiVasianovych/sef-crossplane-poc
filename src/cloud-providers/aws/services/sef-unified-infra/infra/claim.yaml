@@ -52,32 +52,32 @@ spec:
     sqsManagedSseEnabled: false
 
     # EKS Vars
-    accountId: "707078929101"
-    provider: "default"
-    permissionsBoundaryPolicy: "policy/NokiaBoundary"
-    clusterName: "eks-crossplane"
-    #eksVpcCidrBlock: "10.0.0.0/24"  # vpcCidrBlock
-    k8s-version: "1.32"
-    capacityType: "ON_DEMAND"
-    imdsV2HttpTokens: "required"
-    nodeGroupDesiredSize: 2
-    nodeGroupMaxSize: 3
-    nodeGroupMinSize: 1
-    nodesImageId: "ami-068faf14a4d1a609e"
-    nodesInstanceType: "t3.medium"
-    nodesLabels:
-      environment: "development"
-      team: "SaaS"
-      project: "SEF-EKS-Crossplane"
-      common: "true"
-    nodesVolumeSize: 60
-    nodesVolumeType: "gp3"
-    clusterAllowedCidrs:
-      - "131.228.2.0/27"
-      - "131.228.32.160/27"
-      - "37.220.140.34/32"
-      - "135.245.48.76/32"
-      - "135.245.48.77/32"
-      - "135.245.48.86/32"
-      - "135.245.48.87/32"
-      - "135.245.20.0/27"
+    # accountId: "707078929101"
+    # provider: "default"
+    # permissionsBoundaryPolicy: "policy/NokiaBoundary"
+    # clusterName: "eks-crossplane"
+    # #eksVpcCidrBlock: "10.0.0.0/24"  # vpcCidrBlock
+    # k8s-version: "1.32"
+    # capacityType: "ON_DEMAND"
+    # imdsV2HttpTokens: "required"
+    # nodeGroupDesiredSize: 2
+    # nodeGroupMaxSize: 3
+    # nodeGroupMinSize: 1
+    # nodesImageId: "ami-068faf14a4d1a609e"
+    # nodesInstanceType: "t3.medium"
+    # nodesLabels:
+    #   environment: "development"
+    #   team: "SaaS"
+    #   project: "SEF-EKS-Crossplane"
+    #   common: "true"
+    # nodesVolumeSize: 60
+    # nodesVolumeType: "gp3"
+    # clusterAllowedCidrs:
+    #   - "131.228.2.0/27"
+    #   - "131.228.32.160/27"
+    #   - "37.220.140.34/32"
+    #   - "135.245.48.76/32"
+    #   - "135.245.48.77/32"
+    #   - "135.245.48.86/32"
+    #   - "135.245.48.87/32"
+    #   - "135.245.20.0/27"
