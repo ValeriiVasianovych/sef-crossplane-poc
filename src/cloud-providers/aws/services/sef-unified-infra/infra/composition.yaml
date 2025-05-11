@@ -114,83 +114,85 @@ spec:
           fromFieldPath: status.vpcNatGwRootZone2PublicIp
           toFieldPath: status.vpcNatGwRootZone2PublicIp
 
-    # - name: rds
-    #   base:
-    #     apiVersion: crossplane.org/v1alpha1
-    #     kind: XRDSClaim
-    #     metadata:
-    #       name: rds-claim
-    #       namespace: crossplane-system
-    #     spec:
-    #       compositionSelector:
-    #         matchLabels:
-    #           crossplane.io/xrd: xrdscs.saas.nokia.com
-    #           nokia.com/saas-provider: aws
-    #           nokia.com/saas-version: "v0.1.0"
-    #       parameters:
-    #         region: <PATCHED>
-    #         name: <PATCHED>
-    #         size: <PATCHED>
-    #         username: <PATCHED>
-    #         engine: <PATCHED>
-    #         storageCapacity: <PATCHED>
-    #         engineVersion: <PATCHED>
-    #         skipFinalSnapshot: <PATCHED>
-    #         publiclyAccessible: <PATCHED>
-    #         autoGeneratePassword: <PATCHED>
-    #         securityGroupName: <PATCHED>
-    #         writeConnectionSecretsToNamespace: <PATCHED>
-    #         vpcId: <PATCHED>
-    #         vpcPrivateSubnets:
-    #           - <PATCHED>
-    #           - <PATCHED>
-    #   patches:
-    #     # General values
-    #     - type: PatchSet
-    #       patchSetName: common-tags
-    #     - type: PatchSet
-    #       patchSetName: region
-    #     # From CRD to Composition
-    #     - type: FromCompositeFieldPath
-    #       fromFieldPath: spec.parameters.rdsName
-    #       toFieldPath: spec.parameters.name
-    #     - type: FromCompositeFieldPath
-    #       fromFieldPath: spec.parameters.size
-    #       toFieldPath: spec.parameters.size
-    #     - type: FromCompositeFieldPath
-    #       fromFieldPath: spec.parameters.username
-    #       toFieldPath: spec.parameters.username
-    #     - type: FromCompositeFieldPath
-    #       fromFieldPath: spec.parameters.engine
-    #       toFieldPath: spec.parameters.engine
-    #     - type: FromCompositeFieldPath
-    #       fromFieldPath: spec.parameters.storageCapacity
-    #       toFieldPath: spec.parameters.storageCapacity
-    #     - type: FromCompositeFieldPath
-    #       fromFieldPath: spec.parameters.engineVersion
-    #       toFieldPath: spec.parameters.engineVersion
-    #     - type: FromCompositeFieldPath
-    #       fromFieldPath: spec.parameters.skipFinalSnapshot
-    #       toFieldPath: spec.parameters.skipFinalSnapshot
-    #     - type: FromCompositeFieldPath
-    #       fromFieldPath: spec.parameters.publiclyAccessible
-    #       toFieldPath: spec.parameters.publiclyAccessible
-    #     - type: FromCompositeFieldPath
-    #       fromFieldPath: spec.parameters.autoGeneratePassword
-    #       toFieldPath: spec.parameters.autoGeneratePassword
-    #     - type: FromCompositeFieldPath
-    #       fromFieldPath: spec.parameters.securityGroupName
-    #       toFieldPath: spec.parameters.securityGroupName
-    #     - type: FromCompositeFieldPath
-    #       fromFieldPath: spec.parameters.writeConnectionSecretsToNamespace
-    #       toFieldPath: spec.parameters.writeConnectionSecretsToNamespace
-    #     - type: FromCompositeFieldPath
-    #       fromFieldPath: status.vpcId
-    #       toFieldPath: spec.parameters.vpcId
-    #     - type: FromCompositeFieldPath
-    #       fromFieldPath: status.privateSubnetIds
-    #       toFieldPath: spec.parameters.vpcPrivateSubnets
-  
+    - name: rds
+      base:
+        apiVersion: crossplane.org/v1alpha1
+        kind: XRDSClaim
+        metadata:
+          name: rds-claim
+          namespace: crossplane-system
+        spec:
+          compositionSelector:
+            matchLabels:
+              crossplane.io/xrd: xrdscs.saas.nokia.com
+              nokia.com/saas-provider: aws
+              nokia.com/saas-version: "v0.1.0"
+          parameters:
+            region: <PATCHED>
+            name: <PATCHED>
+            size: <PATCHED>
+            username: <PATCHED>
+            engine: <PATCHED>
+            storageCapacity: <PATCHED>
+            engineVersion: <PATCHED>
+            skipFinalSnapshot: <PATCHED>
+            publiclyAccessible: <PATCHED>
+            autoGeneratePassword: <PATCHED>
+            securityGroupName: <PATCHED>
+            writeConnectionSecretsToNamespace: <PATCHED>
+            vpcId: <PATCHED>
+            vpcPrivateSubnets:
+              - <PATCHED>
+              - <PATCHED>
+      patches:
+        # General values
+        - type: PatchSet
+          patchSetName: common-tags
+        - type: PatchSet
+          patchSetName: region
+        # From CRD to Composition
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.rdsName
+          toFieldPath: spec.parameters.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.size
+          toFieldPath: spec.parameters.size
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.username
+          toFieldPath: spec.parameters.username
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.engine
+          toFieldPath: spec.parameters.engine
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.storageCapacity
+          toFieldPath: spec.parameters.storageCapacity
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.engineVersion
+          toFieldPath: spec.parameters.engineVersion
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.skipFinalSnapshot
+          toFieldPath: spec.parameters.skipFinalSnapshot
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.publiclyAccessible
+          toFieldPath: spec.parameters.publiclyAccessible
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.autoGeneratePassword
+          toFieldPath: spec.parameters.autoGeneratePassword
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.securityGroupName
+          toFieldPath: spec.parameters.securityGroupName
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.writeConnectionSecretsToNamespace
+          toFieldPath: spec.parameters.writeConnectionSecretsToNamespace
+        # From Composition to CRD
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.vpcId
+          toFieldPath: spec.parameters.vpcId
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.vpcPrivateSubnetsIds
+          toFieldPath: spec.parameters.vpcPrivateSubnets
+
+
     # - name: sqs
     #   base:
     #     apiVersion: crossplane.org/v1alpha1
