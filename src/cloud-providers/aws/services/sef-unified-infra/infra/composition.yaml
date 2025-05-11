@@ -117,9 +117,9 @@ spec:
     - name: rds
       base:
         apiVersion: crossplane.org/v1alpha1
-        kind: XRDSClaim
+        kind: XRDSC
         metadata:
-          name: rds-claim
+          name: xrds
           namespace: crossplane-system
         spec:
           compositionSelector:
