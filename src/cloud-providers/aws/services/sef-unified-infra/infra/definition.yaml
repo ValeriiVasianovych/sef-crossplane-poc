@@ -166,4 +166,4 @@ spec:
                   description: "Public IP address of NAT Gateway in first availability zone"
                 vpcNatGwRootZone2PublicIp:
                   type: string
-                  description: "Public IP address of NAT Gateway in second availability zone"
+                  description: "Public IP address of NAT Gateway in second availability zone" 

@@ -374,7 +374,3 @@ spec:
     #     - type: FromCompositeFieldPath
     #       fromFieldPath: spec.parameters.clusterAllowedCidrs
     #       toFieldPath: spec.parameters.clusterAllowedCidrs
-
-
-          
-          
