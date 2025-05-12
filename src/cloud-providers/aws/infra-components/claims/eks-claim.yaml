@@ -13,10 +13,10 @@ spec:
     accountId: "707078929101"
   parameters:
     clusterName: "eks-crossplane"
-    vpcId: "vpc-09d82ca90e1cb44e1"
+    vpcId: "vpc-0acd66b994175fc04"
     vpcCidrBlock: "10.0.0.0/24" 
-    vpcSubnetZone1Id: "subnet-0cc7380a1d83afe3c"
-    vpcSubnetZone2Id: "subnet-0e34b37b8337b01c8"
+    vpcSubnetZone1Id: "subnet-0673e43346fc6723f"
+    vpcSubnetZone2Id: "subnet-0ef7d99d0327f4cf3"
     k8s-version: "1.32"
     capacityType: "ON_DEMAND"
     imdsV2HttpTokens: "required"
@@ -32,8 +32,8 @@ spec:
       common: "true"
     nodesVolumeSize: 60
     nodesVolumeType: "gp3"
-    vpcNatGwRootZone1PublicIp: "18.192.131.130"
-    vpcNatGwRootZone2PublicIp: "3.124.130.160"
+    vpcNatGwRootZone1PublicIp: "3.68.130.136"
+    vpcNatGwRootZone2PublicIp: "52.59.28.47"
     clusterAllowedCidrs:
       - "131.228.2.0/27"
       - "131.228.32.160/27"
@@ -43,6 +43,4 @@ spec:
       - "135.245.48.86/32"
       - "135.245.48.87/32"
       - "135.245.20.0/27"
-      - "18.192.131.130/32"
-      - "3.124.130.160/32"
 

@@ -291,26 +291,6 @@ spec:
                       fmt: "%s/32"
               - type: FromCompositeFieldPath
                 policy:
-                  fromFieldPath: Required
-                fromFieldPath: spec.parameters.vpcNatGwTargetZone1PublicIp
-                toFieldPath: spec.forProvider.vpcConfig.publicAccessCidrs[2]
-                transforms:
-                  - type: string
-                    string:
-                      type: Format
-                      fmt: "%s/32"
-              - type: FromCompositeFieldPath
-                policy:
-                  fromFieldPath: Required
-                fromFieldPath: spec.parameters.vpcNatGwTargetZone2PublicIp
-                toFieldPath: spec.forProvider.vpcConfig.publicAccessCidrs[3]
-                transforms:
-                  - type: string
-                    string:
-                      type: Format
-                      fmt: "%s/32"
-              - type: FromCompositeFieldPath
-                policy:
                   toFieldPath: ForceMergeObjectsAppendArrays
                 fromFieldPath: spec.parameters.clusterAllowedCidrs
                 toFieldPath: spec.forProvider.vpcConfig.publicAccessCidrs

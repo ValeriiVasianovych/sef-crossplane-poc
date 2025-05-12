@@ -87,12 +87,14 @@ spec:
                     vpcNatGwRootZone2PublicIp:
                       type: string
                       default: "127.0.0.2"
-                    vpcNatGwTargetZone1PublicIp:
-                      type: string
-                      default: "127.0.0.3"
-                    vpcNatGwTargetZone2PublicIp:
-                      type: string
-                      default: "127.0.0.4"
+                      
+                    # vpcNatGwTargetZone1PublicIp:
+                    #   type: string
+                    #   default: "127.0.0.3"
+                    # vpcNatGwTargetZone2PublicIp:
+                    #   type: string
+                    #   default: "127.0.0.4"
+
                     # customerDnPrefix:
                     #   type: string
                     #   default: "10.95.81.0/24"
