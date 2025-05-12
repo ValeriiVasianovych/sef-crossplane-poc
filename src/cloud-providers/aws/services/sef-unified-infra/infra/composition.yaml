@@ -261,7 +261,7 @@ spec:
         spec:
           compositionSelector:
             matchLabels:
-              crossplane.io/xrd: xsqscs.saas.nokia.com
+              crossplane.io/xrd: xekscs.saas.nokia.com
               nokia.com/saas-provider: aws
               nokia.com/saas-version: "v0.1.0"
           target:
