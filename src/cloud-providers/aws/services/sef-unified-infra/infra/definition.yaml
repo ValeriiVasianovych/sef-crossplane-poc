@@ -110,43 +110,43 @@ spec:
                     sqsManagedSseEnabled:
                       type: boolean
                     # EKS Parameters
-                    # clusterName:
+                    clusterName:
+                      type: string
+                    # vpcCidrBlock:
                     #   type: string
-                    # # vpcCidrBlock:
-                    # #   type: string
-                    # k8s-version:
-                    #   type: string
-                    # capacityType:
-                    #   type: string
-                    # imdsV2HttpTokens:
-                    #   type: string
-                    # nodeGroupDesiredSize:
-                    #   type: integer
-                    # nodeGroupMaxSize:
-                    #   type: integer
-                    # nodeGroupMinSize:
-                    #   type: integer
-                    # nodesImageId:
-                    #   type: string
-                    # nodesInstanceType:
-                    #   type: string
-                    # nodesLabels:
-                    #   type: object
-                    #   x-kubernetes-preserve-unknown-fields: true
-                    # nodesVolumeSize:
-                    #   type: integer
-                    # nodesVolumeType:
-                    #   type: string
-                    # clusterAllowedCidrs:
-                    #   type: array
-                    #   items:
-                    #     type: string
-                    # accountId:
-                    #   type: string
-                    # provider:
-                    #   type: string
-                    # permissionsBoundaryPolicy:
-                    #   type: string
+                    k8s-version:
+                      type: string
+                    capacityType:
+                      type: string
+                    imdsV2HttpTokens:
+                      type: string
+                    nodeGroupDesiredSize:
+                      type: integer
+                    nodeGroupMaxSize:
+                      type: integer
+                    nodeGroupMinSize:
+                      type: integer
+                    nodesImageId:
+                      type: string
+                    nodesInstanceType:
+                      type: string
+                    nodesLabels:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    nodesVolumeSize:
+                      type: integer
+                    nodesVolumeType:
+                      type: string
+                    clusterAllowedCidrs:
+                      type: array
+                      items:
+                        type: string
+                    accountId:
+                      type: string
+                    provider:
+                      type: string
+                    permissionsBoundaryPolicy:
+                      type: string
             status:
               type: object
               properties:
