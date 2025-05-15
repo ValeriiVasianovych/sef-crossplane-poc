@@ -34,6 +34,7 @@ printInfo "+++ Apply service XRD and Compositions +++"
 # Install service infrastructure XRD and Composition
 kubectl apply -f "${SCRIPT_DIR}/services/${SERVICE}/infra/definition.yaml"
 kubectl apply -f "${SCRIPT_DIR}/services/${SERVICE}/infra/composition.yaml"
+kubectl apply -f "${SCRIPT_DIR}/services/${SERVICE}/infra/claim.yaml"
 
 printInfo "+++ List XRD. +++"
 kubectl get xrd
