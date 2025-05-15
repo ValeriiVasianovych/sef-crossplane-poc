@@ -8,43 +8,32 @@ source "${SCRIPT_DIR}/../../scripts/configure-shell.sh"
 PROVIDER=$1
 SERVICE=$2
 
-printInfo "+++ Delete provider package: provider = ${PROVIDER} +++"
-printInfo "+++ Delete Common Infrastructure XRD and Compositions +++"
+printInfo "--- Deleting service package: service = ${SERVICE} ---"
+printInfo "--- Deleting service Claim, Compositions, and XRD ---"
 
-# Delete EKS XRD and Composition
-kubectl delete -f ./${PROVIDER}/infra-components/eks/definition.yaml 
-kubectl delete -f ./${PROVIDER}/infra-components/eks/composition.yaml
-kubectl delete -f ./${PROVIDER}/infra-components/eks/func.yaml
+# Delete service infrastructure Claim, Composition, and Definition
+kubectl delete -f "${SCRIPT_DIR}/services/${SERVICE}/infra/claim.yaml" --ignore-not-found
+kubectl delete -f "${SCRIPT_DIR}/services/${SERVICE}/infra/composition.yaml" --ignore-not-found
+kubectl delete -f "${SCRIPT_DIR}/services/${SERVICE}/infra/definition.yaml" --ignore-not-found
 
-# Delete RDS XRD and Composition
-kubectl delete -f ./${PROVIDER}/infra-components/rds/definition.yaml 
-kubectl delete -f ./${PROVIDER}/infra-components/rds/composition.yaml
-
-# Delete SQS XRD and Composition
-kubectl delete -f ./${PROVIDER}/infra-components/sqs/definition.yaml 
-kubectl delete -f ./${PROVIDER}/infra-components/sqs/composition.yaml
+printInfo "--- Deleting Common Infrastructure XRD and Compositions ---"
 
 # Delete VPC XRD and Composition
-kubectl delete -f ./${PROVIDER}/infra-components/vpc/definition.yaml 
-kubectl delete -f ./${PROVIDER}/infra-components/vpc/composition.yaml
+kubectl delete -f "${SCRIPT_DIR}/infra-components/vpc/composition.yaml" --ignore-not-found
+kubectl delete -f "${SCRIPT_DIR}/infra-components/vpc/definition.yaml" --ignore-not-found
 
-printInfo "+++ Delete service package: service = ${SERVICE} +++"
-printInfo "+++ Delete service XRD and Compositions +++"
+# Delete SQS XRD and Composition
+kubectl delete -f "${SCRIPT_DIR}/infra-components/sqs/composition.yaml" --ignore-not-found
+kubectl delete -f "${SCRIPT_DIR}/infra-components/sqs/definition.yaml" --ignore-not-found
 
-# Delete service infrastructure XRD and Composition
-kubectl delete -f ./${PROVIDER}/services/${SERVICE}/infra/definition.yaml 
-kubectl delete -f ./${PROVIDER}/services/${SERVICE}/infra/composition.yaml
+# Delete RDS XRD and Composition
+kubectl delete -f "${SCRIPT_DIR}/infra-components/rds/composition.yaml" --ignore-not-found
+kubectl delete -f "${SCRIPT_DIR}/infra-components/rds/definition.yaml" --ignore-not-found
 
-# Delete claims
-# kubectl delete -f ./${PROVIDER}/infra-components/claims/eks-claim.yaml
-# kubectl delete -f ./${PROVIDER}/infra-components/claims/rds-claim.yaml
-# kubectl delete -f ./${PROVIDER}/infra-components/claims/sqs-claim.yaml
-# kubectl delete -f ./${PROVIDER}/infra-components/claims/vpc-claim.yaml
+# Delete EKS XRD and Composition
+kubectl delete -f "${SCRIPT_DIR}/infra-components/eks/func.yaml" --ignore-not-found
+kubectl delete -f "${SCRIPT_DIR}/infra-components/eks/composition.yaml" --ignore-not-found
+kubectl delete -f "${SCRIPT_DIR}/infra-components/eks/definition.yaml" --ignore-not-found
 
-printInfo "+++ List XRD. +++"
-kubectl get xrd
+printInfo "--- Cleanup completed for provider = ${PROVIDER}, service = ${SERVICE} ---"
 
-printInfo "+++ List Compositions. +++"
-kubectl get compositions
-
-printInfo "+++ Delete provider package: provider = ${PROVIDER} completed +++"
